@@ -1,0 +1,11 @@
+#!name=App Store 下载提速
+#!desc=通过指定 CDN 节点加速 App Store 应用下载，支持在插件设置中自由切换节点。
+#!author=YuI2333
+#!system=ios
+
+[Argument]
+AppStore_CDN = select, iosapps.itunes.apple.com.download.ks-cdn.com, hls.itunes.apple.com.mwcname.com, iosapps.itunes.apple.com.m.alikunlun.net, title="选择 CDN 节点", desc="选项依次对应：1.金山云 2.网宿 3.阿里云。如需恢复系统默认，请直接关闭本插件。"
+
+[Host]
+# 使用 {变量名} 注入用户在菜单中选择的节点
+iosapps.itunes.apple.com = {AppStore_CDN}
