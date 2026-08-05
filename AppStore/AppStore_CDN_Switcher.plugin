@@ -4,7 +4,7 @@
 #!system=ios
 
 [Argument]
-AppStore_CDN = select, iosapps.itunes.apple.com.download.ks-cdn.com, hls.itunes.apple.com.mwcname.com, iosapps.itunes.apple.com.m.alikunlun.net, title="选择 CDN 节点", desc="域名对应说明：ks-cdn (金山云) | mwcname (网宿) | alikunlun (阿里云)"
+AppStore_CDN = select, "iosapps.itunes.apple.com.download.ks-cdn.com", "hls.itunes.apple.com.mwcname.com", "iosapps.itunes.apple.com.m.alikunlun.net", title="选择 CDN 节点", desc="域名对应说明：ks-cdn (金山云) | mwcname (网宿) | alikunlun (阿里云)"
 
 [Host]
 iosapps.itunes.apple.com = {AppStore_CDN}
