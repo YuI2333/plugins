@@ -1,0 +1,17 @@
+#!name=跳转哔哩哔哩国际版
+#!desc=将网页端B站视频、番剧及UP主空间链接重定向至哔哩哔哩国际版客户端
+#!author=YuI2333
+#!system=ios
+
+[Rewrite]
+# BV视频跳转
+(?i)^https?:\/\/(?:m|www)\.bilibili\.com\/video\/(BV[a-zA-Z0-9]+).* bilibili://video/$1 302
+# 番剧剧集页面 (ss开头) 跳转
+(?i)^https?:\/\/(?:m|www)\.bilibili\.com\/bangumi\/play\/ss([0-9]+).* bilibili://bangumi/season/$1 302
+# 番剧单集页面 (ep开头) 跳转
+(?i)^https?:\/\/(?:m|www)\.bilibili\.com\/bangumi\/play\/ep([0-9]+).* bilibili://bangumi/episode/$1 302
+# UP主个人空间页面跳转
+(?i)^https?:\/\/(?:m\.bilibili\.com\/space|space\.bilibili\.com)\/([0-9]+).* bilibili://space/$1 302
+
+[MitM]
+hostname = m.bilibili.com, www.bilibili.com, space.bilibili.com
