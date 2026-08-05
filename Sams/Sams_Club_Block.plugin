@@ -37,8 +37,8 @@
 
 [Script]
 # 购物车数量角标隐藏
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/trade\/cart\/getTotalGoodsNum$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_number.js, requires-body=true, timeout=10, tag=隐藏山姆购物车角标
+http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/trade\/cart\/getTotalGoodsNum$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_number.js, requires-body=true, timeout=10, tag=山姆购物车角标
 # 我的页面续费横幅
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_adgroup.js, requires-body=true, timeout=10, tag=隐藏山姆广告组数据
+http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_adgroup.js, requires-body=true, timeout=10, tag=自动续费横幅
 [MitM]
 hostname = api-sams.walmartmobile.cn,api-green-sams.walmartmobile.cn
