@@ -1,0 +1,10 @@
+#!name=屏蔽安全通升级弹窗
+#!desc=屏蔽安全通APP的强制更新与升级弹窗
+#!author=YuI2333
+#!system=ios
+
+[Script]
+http-response ^https:\/\/zhscjgyth\.scjg\.hangzhou\.gov\.cn\/tzsb\/tzthird\/dtaqt\/WXB\/ant-server\/user\/new\/version\/v2 script-path=https://raw.githubusercontent.com/YuI2333/plugins/main/AQT/skip_update.js, requires-body=true, timeout=60, tag=屏蔽安全通升级弹窗
+
+[MitM]
+hostname = zhscjgyth.scjg.hangzhou.gov.cn
