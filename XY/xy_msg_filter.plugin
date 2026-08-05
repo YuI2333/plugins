@@ -3,7 +3,7 @@
 #!date=2026
 
 [Script]
-http-response ^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemessage\.session\.sync requires-body=true, timeout=10, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/XY/xy_msg_filter.js%E2%81%A0, tag=闲鱼消息净化
+http-response ^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemessage\.session\.sync requires-body=true, timeout=10, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/XY/xy_msg_filter.js, tag=闲鱼消息净化
 
 [MITM]
 hostname = acs.m.goofish.com
