@@ -1,0 +1,11 @@
+#!name=贴吧补充规则
+#!desc=屏蔽贴吧数据监控及红包雨广告
+#!author=YourName
+
+[Rule]
+
+# 贴吧遥测
+URL-REGEX,^https?:\/\/dmpstatic\.cdn\.bcebos\.com\/weirwood-sdk\/,REJECT
+
+# 贴吧红包雨ad
+URL-REGEX,^https?:\/\/tieba-ares\.cdn\.bcebos\.com\/mis\/,REJECT
