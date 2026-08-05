@@ -1,0 +1,11 @@
+#!name=屏蔽大疆 DJI News 推送
+#!desc=清除 DJI App 中的 dji_news 活动推送与红点，保留客服及账户等系统通知
+#!author=Local
+#!system=ios
+
+[Script]
+# 匹配大疆未读消息接口
+http-response ^https:\/\/plus\.dji\.com\/api\/v5\/notifications\/unread_infos script-path=https://raw.githubusercontent.com/你的用户名/Loon-Plugins/main/dji_news_block.js, requires-body=true, timeout=60, tag=屏蔽DJI News推送
+
+[MitM]
+hostname = plus.dji.com
