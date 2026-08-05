@@ -1,0 +1,14 @@
+#!name=小红书纯图文模式
+#!desc=过滤小红书首页和搜索页中的视频内容，只保留图文笔记
+#!author=YuI2333
+#!system=ios
+
+[Rewrite]
+# 小红书搜索页只保留图文
+^https:\/\/so\.xiaohongshu\.com\/api\/sns\/v\d+\/search\/notes response-body-json-jq '.data.items |= map(select(.note?.type == "normal"))'
+
+# 小红书首页只保留图文
+^https:\/\/rec\.xiaohongshu\.com\/api\/sns\/v\d+\/homefeed response-body-json-jq '.data |= map(select(.type == "normal"))'
+
+[MitM]
+hostname = so.xiaohongshu.com, rec.xiaohongshu.com
