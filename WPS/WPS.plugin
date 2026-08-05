@@ -1,0 +1,11 @@
+#!name=WPS国际版去订阅弹窗
+#!desc=移除WPS国际版的订阅弹窗
+#!icon=https://github.com/Toperlock/Quantumult/raw/main/icon/Doraemon/Doraemon-1086.png
+#!author=YuI2333
+#!system=ios
+
+[Script]
+http-response ^https:\/\/firebaseremoteconfig\.googleapis\.com\/v1\/projects\/wps-ios-351108\/namespaces\/firebase:fetch\?key=.*? script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/WPS/WPS.js, requires-body=true, timeout=60, tag=WPS
+
+[MitM]
+hostname = firebaseremoteconfig.googleapis.com
