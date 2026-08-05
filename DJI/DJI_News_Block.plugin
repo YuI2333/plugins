@@ -1,7 +1,5 @@
 #!name=屏蔽大疆 DJI 推送与广告
 #!desc=清除 DJI App 中的 dji_news 活动推送与红点，拦截大疆商城开屏广告，保留客服及系统通知
-#!author=YuI2333
-#!system=ios
 
 [Rule]
 # 拦截大疆商城开屏广告
