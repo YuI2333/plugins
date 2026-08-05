@@ -1,5 +1,6 @@
 #!name=贴吧补充规则
 #!desc=屏蔽贴吧数据监控、红包雨广告及关注引导弹窗
+#!version=5.0
 #!author=YourName
 
 [Rewrite]
@@ -10,7 +11,7 @@
 ^https?:\/\/tieba-ares\.cdn\.bcebos\.com\/mis\/.* reject-200
 
 # 3. 拦截红包雨、抽奖、活动推送及“关注引导弹窗”等核心 JS 组件 (返回 HTTP 200 空内容)
-^https?:\/\/.*?\.(bcebos|bdstatic|baidu)\.com\/.*?\/static\/js\/(prizeResult|spring-flip-card-horse|push-notice|hot-circle|comment-focus|user-guide)\.[a-f0-9]+\.js reject-200
+^https?:\/\/.*?\.(bcebos|bdstatic|baidu)\.com\/.*?\/static\/js\/(prizeResult|spring-flip-card-horse|push-notice|hot-circle|comment-focus|user-guide|my-followed|na-topic-detail)\.[a-f0-9]+\.js reject-200
 
 [MITM]
 hostname = dmpstatic.cdn.bcebos.com, tieba-ares.cdn.bcebos.com, tb3.bdstatic.com, tiebapic.baidu.com
