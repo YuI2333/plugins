@@ -1,9 +1,0 @@
-#!name=百度贴吧广告补充
-#!desc=过滤百度贴吧列表广告
-#!author=YuI2333
-
-[Script]
-http-response ^https?:\/\/(tiebac|c\.tieba)\.baidu\.com\/c\/f\/frs\/threadlist\?cmd script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/tieba/tieba_threadlist.js, requires-body=true, binary-body-mode=true, timeout=10, tag=贴吧列表去广告
-
-[MITM]
-hostname = tiebac.baidu.com, c.tieba.baidu.com
