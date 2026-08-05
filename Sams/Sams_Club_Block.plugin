@@ -2,6 +2,12 @@
 #!desc=拦截山姆App调研弹窗、通知按钮红点数字、搜索框推荐词、购物车猜你喜欢、我的页面常买列表以及门店页面商品列表
 
 [Rewrite]
+# 购物车数量角标
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/trade\/cart\/getTotalGoodsNum$ reject-dict
+# 商品详情底部一起买
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/queryBySpuId$ reject-dict
+# 我的页面自动续费横幅
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ reject-dict
 # 山姆调研
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/research\/getQuestion$ reject-dict
 # 山姆通知按钮数字
