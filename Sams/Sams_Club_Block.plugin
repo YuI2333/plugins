@@ -1,13 +1,15 @@
 #!name=山姆会员商店净化
-#!desc=拦截山姆App调研弹窗、通知按钮红点数字以及搜索框推荐词
+#!desc=拦截山姆App调研弹窗、通知按钮红点数字、搜索框推荐词以及购物车猜你喜欢
 
-[Rule]
+[Rewrite]
 # 山姆调研
-URL-REGEX,^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/research\/getQuestion$,REJECT-DICT
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/research\/getQuestion$ reject-dict
 # 山姆通知按钮数字
-URL-REGEX,^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/message\/portal\/systemMessage\/getTotalUnreadCount$,REJECT-DICT
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/message\/portal\/systemMessage\/getTotalUnreadCount$ reject-dict
 # 山姆搜索框推荐词
-URL-REGEX,^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/searchTextConf\/queryList$,REJECT-DICT
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/searchTextConf\/queryList$ reject-dict
+# 山姆购物车猜你喜欢
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/cartRecommendFlow\/recommend$ reject-dict
 
 [MitM]
 hostname = api-sams.walmartmobile.cn
