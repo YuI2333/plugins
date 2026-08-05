@@ -6,8 +6,6 @@
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/order\/orderDetailRecommend$ reject-dict
 # 商品详情底部一起买
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/queryBySpuId$ reject-dict
-# 我的页面自动续费横幅
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ reject-dict
 # 山姆调研
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/research\/getQuestion$ reject-dict
 # 山姆通知按钮数字
