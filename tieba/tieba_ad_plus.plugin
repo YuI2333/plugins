@@ -1,16 +1,16 @@
 #!name=贴吧补充规则
-#!desc=屏蔽贴吧数据监控及红包雨广告
+#!desc=屏蔽贴吧数据监控、红包雨广告及关注引导弹窗
 #!author=YourName
 
 [Rewrite]
-# 1. 屏蔽贴吧遥测 SDK (返回 HTTP 200 空内容)
+# 1. 贴吧遥测 (返回 HTTP 200 空内容)
 ^https?:\/\/dmpstatic\.cdn\.bcebos\.com\/weirwood-sdk\/.* reject-200
 
-# 2. 屏蔽贴吧特定广告图及推广素材目录 (返回 HTTP 200 空内容)
+# 2. 贴吧特定广告图及推广素材目录 (返回 HTTP 200 空内容)
 ^https?:\/\/tieba-ares\.cdn\.bcebos\.com\/mis\/.* reject-200
 
-# 3. 拦截红包雨、抽奖结果及活动推送核心 JS 组件 (返回 HTTP 200 空内容)
-^https?:\/\/.*?\.(bcebos|bdstatic|baidu)\.com\/.*?\/static\/js\/(prizeResult|spring-flip-card-horse|push-notice|hot-circle)\.[a-f0-9]+\.js reject-200
+# 3. 拦截红包雨、抽奖、活动推送及“关注引导弹窗”等核心 JS 组件 (返回 HTTP 200 空内容)
+^https?:\/\/.*?\.(bcebos|bdstatic|baidu)\.com\/.*?\/static\/js\/(prizeResult|spring-flip-card-horse|push-notice|hot-circle|comment-focus|user-guide)\.[a-f0-9]+\.js reject-200
 
 [MITM]
 hostname = dmpstatic.cdn.bcebos.com, tieba-ares.cdn.bcebos.com, tb3.bdstatic.com, tiebapic.baidu.com
