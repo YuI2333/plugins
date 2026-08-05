@@ -3,17 +3,17 @@
 
 [Rewrite]
 # 购物车数量角标
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/trade\/cart\/getTotalGoodsNum$ reject-200
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/trade\/cart\/getTotalGoodsNum$ reject-dict
 # 商品详情底部一起买
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/queryBySpuId$ reject-dict
 # 我的页面自动续费横幅
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ reject-200
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ reject-dict
 # 山姆调研
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/research\/getQuestion$ reject-dict
 # 山姆通知按钮数字
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/message\/portal\/systemMessage\/getTotalUnreadCount$ reject-dict
 # 山姆搜索框推荐词
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/searchTextConf\/queryList$ reject-200
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/searchTextConf\/queryList$ reject-dict
 # 山姆购物车猜你喜欢
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/cartRecommendFlow\/recommend$ reject-dict
 # 山姆我的页面常买列表
@@ -27,9 +27,9 @@
 # 搜索界面热搜精选
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/searchRankGroup\/getOneGroup reject-dict
 # 搜索界面猜你喜欢
-^https?://api-sams.walmartmobile.cn/api/v1/sams/configuration/hotwordsStore/queryList reject-200
+^https?://api-sams.walmartmobile.cn/api/v1/sams/configuration/hotwordsStore/queryList reject-dict
 # 拦截卓越会员升级弹窗与开屏促销广告
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/(window\/getGoUpPlus|screen_promotion\/get) reject-dict
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/(window\/getGoUpPlus|screen_promotion\/get) reject
 # 拦截个人中心推广入口
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/personCenterEntrance\/query reject-dict
 # 拦截App版本更新提示
