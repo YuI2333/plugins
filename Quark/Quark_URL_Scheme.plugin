@@ -1,0 +1,11 @@
+#!name=夸克网盘跳转
+#!desc=将夸克网盘分享链接自动重定向至夸克App
+#!author=YuI2333
+#!system=ios
+
+[Rewrite]
+# 匹配夸克网盘分享链接，将其重定向至 quarkcloud:// 协议唤醒App
+^https?:\/\/pan\.quark\.cn\/(.*) quarkcloud://pan.quark.cn/$1 302
+
+[MitM]
+hostname = pan.quark.cn
