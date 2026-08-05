@@ -1,7 +1,5 @@
 #!name=山姆会员商店净化
 #!desc=拦截山姆App调研弹窗、通知按钮红点数字以及搜索框推荐词
-#!author=YuI2333
-#!system=ios
 
 [Rule]
 # 山姆调研
