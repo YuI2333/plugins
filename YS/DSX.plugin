@@ -39,7 +39,7 @@ DOMAIN-SUFFIX,dsx.ac,DIRECT
 [Rewrite]
 # 大师兄影视弹窗
 ^http:\/\/app2\.dsx\.ac\/ndsx\.php\/v\d\/logs response-body-json-jq 'del(.data.banners) | if .data.is_top then .data = [] else . end'
-
+^http:\/\/app\.dsx\.ac\/ndsx\.php\/v\d\/logs response-body-json-jq 'del(.data.banners) | if .data.is_top then .data = [] else . end'
 # 松子影视弹窗
 ^https?:\/\/taobao\.fttv\.top\/songzi\.php\/v7\/logs response-body-json-jq 'del(.data.banners) | if .data.is_top then .data = [] else . end'
 
