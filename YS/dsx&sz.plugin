@@ -1,0 +1,47 @@
+#!name=大师兄与松子影视优化
+#!desc=大师兄影视与松子影视去弹窗广告及播放线路直连
+#!author=YuI2333
+#!system=ios
+
+[Rule]
+# === 松子影视 ===
+DOMAIN-KEYWORD,cdnlz,DIRECT
+DOMAIN-SUFFIX,wmdb.tv,DIRECT
+DOMAIN-SUFFIX,lfthirtytwo.com,DIRECT
+DOMAIN-SUFFIX,youkupic.com,DIRECT
+DOMAIN-SUFFIX,jisuimage.com,DIRECT
+DOMAIN-KEYWORD,lzcdn,DIRECT
+DOMAIN-KEYWORD,dytt,DIRECT
+DOMAIN-SUFFIX,armytea.com,DIRECT
+DOMAIN-SUFFIX,fttv.top,DIRECT
+
+# === 大师兄影视 ===
+DOMAIN-SUFFIX,ry-pic.com,DIRECT
+DOMAIN-SUFFIX,bfzypic.com,DIRECT
+DOMAIN-KEYWORD,ryplay,DIRECT
+DOMAIN-SUFFIX,img.test.com,DIRECT
+DOMAIN-SUFFIX,feifei-kan.com,DIRECT
+DOMAIN-KEYWORD,ffzy,DIRECT
+DOMAIN-KEYWORD,play-cdn,DIRECT
+DOMAIN-SUFFIX,capcutvod.com,DIRECT
+DOMAIN-SUFFIX,findjs.top,DIRECT
+DOMAIN-KEYWORD,yzzy,DIRECT
+DOMAIN-SUFFIX,ymuuy.com,DIRECT
+DOMAIN-KEYWORD,vvvip-plays,DIRECT
+DOMAIN-SUFFIX,bbroot.com,DIRECT
+DOMAIN-SUFFIX,ibyteimg.com,DIRECT
+DOMAIN-SUFFIX,picbf.com,DIRECT
+DOMAIN-SUFFIX,ffeiimg.com,DIRECT
+DOMAIN-SUFFIX,hxx2023.cc,DIRECT
+DOMAIN-SUFFIX,lzipic.com,DIRECT
+DOMAIN-SUFFIX,dsx.ac,DIRECT
+
+[Rewrite]
+# 大师兄影视弹窗
+^http:\/\/app2\.dsx\.ac\/ndsx\.php\/v\d\/logs response-body-json-jq 'del(.data.banners) | if .data.is_top then .data = [] else . end'
+
+# 松子影视弹窗
+^https?:\/\/taobao\.fttv\.top\/songzi\.php\/v7\/logs response-body-json-jq 'del(.data.banners) | if .data.is_top then .data = [] else . end'
+
+[MitM]
+hostname = app2.dsx.ac, taobao.fttv.top
