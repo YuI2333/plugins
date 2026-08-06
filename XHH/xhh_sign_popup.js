@@ -8,9 +8,7 @@ try {
             ["notify_description", "description", "sign_in_coin", "sign_in_exp", "level_info"].forEach(k => delete obj.result[k]);
         }
     } else if (obj.result) {
-        if (url.includes("popup")) {
-            obj.result.popup_list = [];
-        } else if (url.includes("search/found")) {
+        if (url.includes("search/found")) {
             delete obj.result.search_found;
         } else if (obj.result.messages) {
             obj.result.messages = obj.result.messages.filter(i => !["活动消息", "游戏优惠"].includes(i?.user_a?.username));
