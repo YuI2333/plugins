@@ -1,10 +1,8 @@
 try {
     let obj = JSON.parse($response.body);
     
-    // 清空搜索框下方的热词列表数据源
-    if (obj.recommend_queries) {
-        obj.recommend_queries.queries = [];
-    }
+    // 直接彻底删除整个推荐节点，破坏客户端的缓存触发逻辑
+    delete obj.recommend_queries;
     
     $done({ body: JSON.stringify(obj) });
 } catch (e) {
