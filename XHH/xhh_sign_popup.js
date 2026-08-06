@@ -10,8 +10,9 @@ try {
     } else if (obj.result) {
         if (url.includes("popup")) {
             obj.result.popup_list = [];
+        } else if (url.includes("search/found")) {
+            delete obj.result.search_found;
         } else if (obj.result.messages) {
-            // 通过排除法，进入此分支的必然是消息列表接口
             obj.result.messages = obj.result.messages.filter(i => !["活动消息", "游戏优惠"].includes(i?.user_a?.username));
         }
     }
