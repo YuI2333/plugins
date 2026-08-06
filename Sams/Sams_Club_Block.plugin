@@ -40,6 +40,8 @@
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/portal\/beUpdate reject-dict
 
 [Script]
+# 付款界面省心带一件
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v3\/sams\/trade\/settlement\/getSettleInfo requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_buytogo_remove.js, tag=付款界面省心带一件
 # 购物车数量角标隐藏
 http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/trade\/cart\/getTotalGoodsNum$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_number.js, requires-body=true, timeout=10, tag=山姆购物车角标
 # 我的页面续费横幅
