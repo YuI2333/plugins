@@ -1,8 +1,9 @@
-#!name=小黑盒签到弹窗屏蔽
-#!desc=通过修改响应体抹除小黑盒签到成功后的弹窗提示
+#!name=小黑盒弹窗全屏蔽
+#!desc=屏蔽小黑盒签到弹窗及系统通知开启弹窗
+#!author=Assistant
 
 [Script]
-http-response ^https?:\/\/api\.xiaoheihe\.cn\/task\/sign_v3\/get_sign_state requires-body=true, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/XHH/xhh_sign_popup.js, timeout=10, tag=小黑盒签到弹窗屏蔽
+http-response ^https?:\/\/api\.xiaoheihe\.cn\/(task\/sign_v3\/get_sign_state|account\/popup_v2) requires-body=true, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/XHH/xhh_sign_popup.js, timeout=10, tag=小黑盒弹窗屏蔽
 
 [MITM]
 hostname = api.xiaoheihe.cn
