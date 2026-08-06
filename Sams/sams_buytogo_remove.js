@@ -1,11 +1,17 @@
 try {
-    let body = JSON.parse($response.body);
-    // 定位并删除省心带一件模块
-    if (body && body.data && body.data.buyToGoInfo) {
-        delete body.data.buyToGoInfo;
+    if ($response && $response.body) {
+        let obj = JSON.parse($response.body);
+        
+        // 使用可选链 (?.) 安全判断并删除节点
+        if (obj?.data?.buyToGoInfo) {
+            delete obj.data.buyToGoInfo;
+        }
+        
+        $done({ body: JSON.stringify(obj) });
+    } else {
+        $done({});
     }
-    $done({ body: JSON.stringify(body) });
-} catch (e) {
-    console.log("山姆省心带一件脚本解析错误: " + e);
+} catch (error) {
+    console.log("山姆去除省心带一件脚本运行异常: " + error);
     $done({});
 }
