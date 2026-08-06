@@ -1,9 +1,9 @@
-#!name=小黑盒弹窗全屏蔽
-#!desc=屏蔽小黑盒签到弹窗及系统通知开启弹窗
+#!name=小黑盒净化
+#!desc=屏蔽签到弹窗、系统通知弹窗及消息中心的活动与优惠消息
 #!author=Assistant
 
 [Script]
-http-response ^https?:\/\/api\.xiaoheihe\.cn\/(task\/sign_v3\/get_sign_state|account\/popup_v2) requires-body=true, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/XHH/xhh_sign_popup.js, timeout=10, tag=小黑盒弹窗屏蔽
+http-response ^https?:\/\/api\.xiaoheihe\.cn\/(task\/sign_v3\/get_sign_state|account\/popup_v2|msg\/center\/list) requires-body=true, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/XHH/xhh_sign_popup.js, timeout=10, tag=小黑盒净化
 
 [MITM]
 hostname = api.xiaoheihe.cn
