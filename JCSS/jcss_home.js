@@ -1,15 +1,22 @@
 let body = $response.body;
 try {
     let obj = JSON.parse(body);
-    if (obj?.data?.data?.hierarchy?.structure?.root) {
-        let root = obj.data.data.hierarchy.structure.root;
+    // 修正 JSON 层级路径
+    if (obj?.data?.hierarchy?.structure?.root) {
+        let root = obj.data.hierarchy.structure.root;
         
-        // 仅屏蔽警务资讯模块
+        // 屏蔽警务资讯
         const blockList = [
             "mengn_3229"
         ];
         
-        obj.data.data.hierarchy.structure.root = root.filter(item => !blockList.includes(item));
+        // 从渲染根节点中移除
+        obj.data.hierarchy.structure.root = root.filter(item => !blockList.includes(item));
+        
+        // 同时清理 structure 中的子节点数据
+        if (obj.data.hierarchy.structure["mengn_3229"]) {
+            delete obj.data.hierarchy.structure["mengn_3229"];
+        }
         
         body = JSON.stringify(obj);
     }
