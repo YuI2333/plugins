@@ -1,0 +1,10 @@
+#!name=警察叔叔净化
+#!desc=移除开屏启动图及首页警务资讯等无关模块
+#!author=Local
+
+[Script]
+http-response ^https:\/\/portal-jcss\.police\.hangzhou\.gov\.cn\/app_api\/appHome\/selectStartPic requires-body=true, timeout=10, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/JCSS/Start_ad.js, tag=移除启动图
+http-response ^https?:\/\/portal-jcss\.police\.hangzhou\.gov\.cn\/portal\/athena\/show\?sceneCode=APP_HOME requires-body=true, timeout=10, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/JCSS/jcss_home.js, tag=首页净化
+
+[MitM]
+hostname = portal-jcss.police.hangzhou.gov.cn
