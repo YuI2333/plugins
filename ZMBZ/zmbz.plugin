@@ -1,11 +1,13 @@
 #!name=最美壁纸
 #!desc=去除最美壁纸的悬浮和无用横幅
 
-[Rule]
-URL-REGEX,^https?:\/\/p1-bos\.fzxhmy\.com\/413fff5371db445fb1e31b8855f61f73\.gif,REJECT
-URL-REGEX,^https?:\/\/p1-bos\.fzxhmy\.com\/65fd39dd1eee4bb5b8a40a25e2a6c050\.png,REJECT
-URL-REGEX,^https?:\/\/p1-bos\.fzxhmy\.com\/202f1957cdd5421cb8cc99dbba6a40f9\.gif,REJECT
-URL-REGEX,^https?:\/\/p1-bos\.fzxhmy\.com\/e1bedee68f7b49e69ace51194898765d\.png,REJECT
+
+[Rewrite]
+^https?:\/\/p1-bos\.fzxhmy\.com\/413fff5371db445fb1e31b8855f61f73\.gif reject-img
+^https?:\/\/p1-bos\.fzxhmy\.com\/65fd39dd1eee4bb5b8a40a25e2a6c050\.png reject-img
+^https?:\/\/p1-bos\.fzxhmy\.com\/202f1957cdd5421cb8cc99dbba6a40f9\.gif reject-img
+^https?:\/\/p1-bos\.fzxhmy\.com\/e1bedee68f7b49e69ace51194898765d\.png reject-img
 
 [MitM]
 hostname = p1-bos.fzxhmy.com
+
