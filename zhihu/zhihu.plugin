@@ -1,9 +1,9 @@
 #!name=知乎搜索热词屏蔽
-#!desc=直接拦截知乎APP搜索框的推荐热词请求
+#!desc=抹除知乎APP搜索框下方的推荐热词列表
 #!author=Assistant
 
-[URL Rewrite]
-^https?:\/\/api\.zhihu\.com\/search\/recommend_query\/v2 reject-dict
+[Script]
+http-response ^https?:\/\/api\.zhihu\.com\/search\/recommend_query\/v2 requires-body=true, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/zhihu/zhihu_search_hot.js, timeout=10, tag=知乎搜索热词屏蔽
 
 [MITM]
 hostname = api.zhihu.com
