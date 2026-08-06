@@ -1,27 +1,19 @@
-let body = $response.body;
-
-if (body) {
-    try {
-        let obj = JSON.parse(body);
-        
-        // 清空弹窗提示文本
-        if (obj.msg) {
-            obj.msg = ""; 
-        }
-        
-        // 抹除展示用的奖励参数（仅影响本地UI展示，不影响实际账号入账）
-        if (obj.result) {
-            obj.result.sign_in_coin = 0;
-            obj.result.sign_in_exp = 0;
-            obj.result.description = "";
-            obj.result.notify_description = "";
-        }
-        
-        $done({ body: JSON.stringify(obj) });
-    } catch (e) {
-        // 解析失败则原样返回
-        $done({ body });
+try {
+    let obj = JSON.parse($response.body);
+    
+    // 直接删除触发弹窗提示的字段，避免UI渲染空白气泡
+    delete obj.msg;
+    
+    if (obj.result) {
+        delete obj.result.notify_description;
+        delete obj.result.description;
+        // 如果不需要在UI上看到具体的加成数值，也可直接删除
+        delete obj.result.sign_in_coin;
+        delete obj.result.sign_in_exp;
     }
-} else {
+    
+    $done({ body: JSON.stringify(obj) });
+} catch (e) {
+    // 发生异常时直接放行原响应
     $done({});
 }
