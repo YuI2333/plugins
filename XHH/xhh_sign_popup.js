@@ -10,6 +10,9 @@ try {
     } else if (obj.result) {
         if (url.includes("search/found")) {
             delete obj.result.search_found;
+        } else if (url.includes("welcome_page/v2")) {
+            // 清空搜索框默认填充的热词
+            obj.result.default_q = "";
         } else if (obj.result.messages) {
             obj.result.messages = obj.result.messages.filter(i => !["活动消息", "游戏优惠"].includes(i?.user_a?.username));
         }
