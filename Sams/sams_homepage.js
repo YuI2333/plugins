@@ -2,24 +2,21 @@ let body = $response.body;
 try {
     let obj = JSON.parse(body);
     if (obj.data && obj.data.pageModuleVOList) {
-        // 1. 过滤掉顶部轮播海报模块
+        // 定义需要屏蔽的模块黑名单：顶部轮播海报、山姆黑板报
+        const blockList = ["sliderModule", "newsExpressModule"];
+
+        // 1. 过滤掉黑名单中的模块
         obj.data.pageModuleVOList = obj.data.pageModuleVOList.filter(
-            module => module.moduleSign !== "sliderModule"
+            module => !blockList.includes(module.moduleSign)
         );
 
-        // 2. 遍历图文导航模块，去掉角标 (例如：得力文具、野生菌等)
+        // 2. 清理分类导航的角标
         obj.data.pageModuleVOList.forEach(module => {
             if (module.moduleSign === "imageTextNavigationModule" && module.renderContent && module.renderContent.originalItemList) {
                 module.renderContent.originalItemList.forEach(item => {
-                    if (item.atmosLogoText) {
-                        delete item.atmosLogoText;
-                    }
-                    if (item.showAtmosphereLogo !== undefined) {
-                        item.showAtmosphereLogo = false;
-                    }
-                    if (item.atmosLogoShow !== undefined) {
-                        item.atmosLogoShow = "0";
-                    }
+                    delete item.atmosLogoText;
+                    item.showAtmosphereLogo = false;
+                    item.atmosLogoShow = "0";
                 });
             }
         });
