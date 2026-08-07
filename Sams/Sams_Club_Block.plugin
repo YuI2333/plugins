@@ -3,58 +3,57 @@
 
 [Rewrite]
 # 购物车顶部“本订单可获得xx反馈金”提示
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/sams-user\/membership\/trans\/v1\/getRebateDesc reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/membership\/trans\/v\d\/getRebateDesc reject-dict
 # 加入购物车时的弹窗推荐
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/spu\/addCartRecommend reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/goods-sr-portal\/spu\/addCartRecommend reject-dict
 # 订单底部推荐商品
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/order\/orderDetailRecommend$ reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/goods-sr-portal\/order\/orderDetailRecommend$ reject-dict
 # 商品详情底部一起买
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/queryBySpuId$ reject-dict
-# 山姆调研
-#^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/research\/getQuestion$ reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/goods-portal\/spu\/queryBySpuId$ reject-dict
 # 山姆通知按钮数字
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/message\/portal\/systemMessage\/getTotalUnreadCount$ reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getTotalUnreadCount$ reject-dict
 # 山姆购物车猜你喜欢
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/cartRecommendFlow\/recommend$ reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/goods-sr-portal\/cartRecommendFlow\/recommend$ reject-dict
 # 山姆我的页面常买列表
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/edge\/trade\/order\/getOftenBuyGoods$ reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/edge\/trade\/order\/getOftenBuyGoods$ reject-dict
 # 山姆门店页面商品列表
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/merchant\/visitStoreApi\/queryRecommendGoodsList$ reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/visitStoreApi\/queryRecommendGoodsList$ reject-dict
 # 通知内容一刀切全干掉
-^https?:\/\/api-green-sams\.walmartmobile\.cn\/api\/v1\/sams\/message\/portal\/systemMessage\/getHomeMessageList$ reject-dict
+^https:\/\/api-green-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList$ reject-dict
 # 我的页面门店服务
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/merchant\/storeApi\/getStoreServerListV2$ reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/storeApi\/getStoreServerListV2$ reject-dict
 # 搜索界面热搜精选
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/searchRankGroup\/getOneGroup reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/channel\/searchRankGroup\/getOneGroup reject-dict
 # 搜索界面猜你喜欢
-^https?://api-sams.walmartmobile.cn/api/v1/sams/configuration/hotwordsStore/queryList reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/hotwordsStore\/queryList reject-dict
 # 卓越会员升级弹窗与开屏促销广告
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/(window\/getGoUpPlus|screen_promotion\/get) reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/(window\/getGoUpPlus|screen_promotion\/get) reject-dict
 # 个人中心推广入口
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/personCenterEntrance\/query reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/personCenterEntrance\/query reject-dict
 # App版本更新提示
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/appVersionUpdate\/getAppVersionUpdateInfo reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/appVersionUpdate\/getAppVersionUpdateInfo reject-dict
 # App强制更新机制
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/portal\/beUpdate reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/portal\/beUpdate reject-dict
 
 [Script]
 # 门店页面底部去掉商品列表残留的分类按钮（门店商品等）
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/merchant\/visitStoreApi\/getVisitStoreInfo script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_store_visit.js, requires-body=true, timeout=10, tag=屏蔽探店分类按钮
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/visitStoreApi\/getVisitStoreInfo script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_store_visit.js, requires-body=true, timeout=10, tag=屏蔽探店分类按钮
 # 分类页面优化
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/grouping\/queryNavigation script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_category.js, requires-body=true, timeout=10, tag=分类优化
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/goods-portal\/grouping\/queryNavigation script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_category.js, requires-body=true, timeout=10, tag=分类优化
 # 首页精简
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/decoration\/portal\/show\/homePageRecommendByLocation script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_homepage.js, requires-body=true, timeout=10, tag=精简首页
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/decoration\/portal\/show\/homePageRecommendByLocation script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_homepage.js, requires-body=true, timeout=10, tag=精简首页
 # 评价完成页下方会员晒好物
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/discover\/goodscomment\/getGoodsCommentByStore script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_discover_comment.js, requires-body=true, timeout=10, tag=评价完成页会员晒好物
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/discover\/goodscomment\/getGoodsCommentByStore script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_discover_comment.js, requires-body=true, timeout=10, tag=评价完成页会员晒好物
 # 评价完成页下方待评价
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/comment\/goodscomment\/getWaitCommentOrAgaintList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_comment.js, requires-body=true, timeout=10, tag=评价完成页待评价
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/comment\/goodscomment\/getWaitCommentOrAgaintList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_comment.js, requires-body=true, timeout=10, tag=评价完成页待评价
 # 搜索框热词
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/searchTextConf\/queryList requires-body=true, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search.js, timeout=10, tag=搜索框净化
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/searchTextConf\/queryList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search.js, requires-body=true, timeout=10, tag=搜索框净化
 # 付款界面省心带一件
-http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v3\/sams\/trade\/settlement\/getSettleInfo requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_buytogo_remove.js, tag=付款界面省心带一件
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/trade\/settlement\/getSettleInfo script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_buytogo_remove.js, requires-body=true, max-size=3145728, timeout=10, tag=付款界面省心带一件
 # 购物车数量角标隐藏
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/trade\/cart\/getTotalGoodsNum$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_number.js, requires-body=true, timeout=10, tag=购物车角标
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/trade\/cart\/getTotalGoodsNum$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_number.js, requires-body=true, timeout=10, tag=购物车角标
 # 我的页面续费横幅
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_adgroup.js, requires-body=true, timeout=10, tag=自动续费横幅
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_adgroup.js, requires-body=true, timeout=10, tag=自动续费横幅
+
 [MitM]
-hostname = api-sams.walmartmobile.cn,api-green-sams.walmartmobile.cn
+hostname = api-sams.walmartmobile.cn, api-green-sams.walmartmobile.cn
