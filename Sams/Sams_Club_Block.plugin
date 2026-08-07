@@ -38,6 +38,10 @@
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/portal\/beUpdate reject-dict
 
 [Script]
+
+[Script]
+# 山姆待评价
+http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/comment\/goodscomment\/getWaitCommentOrAgaintList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_comment.js, requires-body=true, timeout=10, tag=屏蔽山姆待评价
 # 山姆搜索框热词
 http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/searchTextConf\/queryList requires-body=true, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search.js, timeout=10, tag=山姆搜索框净化
 # 付款界面省心带一件
