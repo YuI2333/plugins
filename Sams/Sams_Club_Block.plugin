@@ -29,7 +29,7 @@
 # 搜索界面猜你喜欢
 ^https?://api-sams.walmartmobile.cn/api/v1/sams/configuration/hotwordsStore/queryList reject-dict
 # 卓越会员升级弹窗与开屏促销广告
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/(window\/getGoUpPlus|screen_promotion\/get) reject
+^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/(window\/getGoUpPlus|screen_promotion\/get) reject-dict
 # 个人中心推广入口
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/personCenterEntrance\/query reject-dict
 # App版本更新提示
