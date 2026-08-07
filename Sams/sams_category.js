@@ -3,26 +3,28 @@ try {
     let obj = JSON.parse(body);
     if (obj.data && obj.data.dataList) {
         
-        // 递归清理所有分类层级的函数
         function cleanNode(node) {
-            // 1. 无差别清除角标 (例如：得力文具、野生菌)
+            // 1. 无差别清除角标 (如：得力文具、野生菌)
             if (node.iconMsg !== undefined) {
                 delete node.iconMsg;
             }
             
-            // 2. 匹配并去除标题中的 Emoji 字符 (例如：烧烤食材前面的火苗图标)
+            // 2. 清除可能由服务端直接下发的图标链接字段
+            if (node.icon) delete node.icon;
+            if (node.iconUrl) delete node.iconUrl;
+            
+            // 3. 强力正则：清除标题开头的所有【非中文、非字母、非数字】字符
+            // 此逻辑可以精准打击 🔥 等所有 Emoji 符号及特殊占位符，且不受 Unicode 编码更新影响
             if (node.title && typeof node.title === 'string') {
-                // 匹配绝大部分代理对（Surrogate Pairs），覆盖常规的彩色 Emoji
-                node.title = node.title.replace(/[\uD800-\uDBFF][\uDC00-\uDFFF]/g, '').trim();
+                node.title = node.title.replace(/^[^\u4e00-\u9fa5a-zA-Z0-9]+/, '').trim();
             }
 
-            // 3. 递归遍历子节点 (自动适配左侧/右侧所有的二级、三级分类菜单)
+            // 4. 递归遍历所有子分类
             if (node.children && Array.isArray(node.children)) {
                 node.children.forEach(child => cleanNode(child));
             }
         }
 
-        // 遍历清理入口数据
         obj.data.dataList.forEach(item => cleanNode(item));
     }
     $done({ body: JSON.stringify(obj) });
