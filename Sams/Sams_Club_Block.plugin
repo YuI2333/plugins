@@ -38,6 +38,8 @@
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/portal\/beUpdate reject-dict
 
 [Script]
+# 首页精简
+http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/decoration\/portal\/show\/homePageRecommendByLocation script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_homepage.js, requires-body=true, timeout=10, tag=精简首页
 # 评价完成页下方会员晒好物
 http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/discover\/goodscomment\/getGoodsCommentByStore script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_discover_comment.js, requires-body=true, timeout=10, tag=评价完成页会员晒好物
 # 评价完成页下方待评价
