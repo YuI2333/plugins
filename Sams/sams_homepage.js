@@ -1,9 +1,7 @@
 let body = $response.body;
 try {
     let obj = JSON.parse(body);
-    // 使用可选链检查数据结构
     if (Array.isArray(obj?.data?.pageModuleVOList)) {
-        // 使用 Set 提高白名单匹配效率
         const allowList = new Set([
             "storeTopModule",             
             "sliderModule",               
@@ -15,7 +13,6 @@ try {
         let tofuCount = 0;
         let newList = [];
 
-        // 单次循环完成过滤与修改
         for (let module of obj.data.pageModuleVOList) {
             if (!allowList.has(module.moduleSign)) continue;
 
@@ -41,9 +38,20 @@ try {
 
             if (module.moduleSign === "sliderModule") {
                 if (module.bizStyle) module.bizStyle.transitionDelay = 99999;
-                module.renderContent?.originalItemList?.forEach(item => {
-                    item.boomInterval = 99999;
-                });
+                
+                if (module.renderContent?.originalItemList) {
+                    // 过滤掉包含“商业化”或“广告”标识的第三方硬广（例如：POV5-商业化雀巢）
+                    module.renderContent.originalItemList = module.renderContent.originalItemList.filter(item => {
+                        let title = item.title || "";
+                        let titleEn = item.titleEn || "";
+                        return !(title.includes("商业化") || titleEn.includes("商业化") || title.includes("广告"));
+                    });
+
+                    // 阻止自动轮播
+                    module.renderContent.originalItemList.forEach(item => {
+                        item.boomInterval = 99999;
+                    });
+                }
             }
 
             newList.push(module);
