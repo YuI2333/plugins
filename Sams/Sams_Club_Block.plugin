@@ -39,19 +39,19 @@
 
 [Script]
 # 分类页面优化
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/grouping\/queryNavigation script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_category.js, requires-body=true, timeout=10, tag=山姆分类优化
+http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/grouping\/queryNavigation script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_category.js, requires-body=true, timeout=10, tag=分类优化
 # 首页精简
 http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/decoration\/portal\/show\/homePageRecommendByLocation script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_homepage.js, requires-body=true, timeout=10, tag=精简首页
 # 评价完成页下方会员晒好物
 http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/discover\/goodscomment\/getGoodsCommentByStore script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_discover_comment.js, requires-body=true, timeout=10, tag=评价完成页会员晒好物
 # 评价完成页下方待评价
 http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/comment\/goodscomment\/getWaitCommentOrAgaintList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_comment.js, requires-body=true, timeout=10, tag=评价完成页待评价
-# 山姆搜索框热词
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/searchTextConf\/queryList requires-body=true, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search.js, timeout=10, tag=山姆搜索框净化
+# 搜索框热词
+http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/searchTextConf\/queryList requires-body=true, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search.js, timeout=10, tag=搜索框净化
 # 付款界面省心带一件
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v3\/sams\/trade\/settlement\/getSettleInfo requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_buytogo_remove.js, tag=付款界面省心带一件
 # 购物车数量角标隐藏
-http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/trade\/cart\/getTotalGoodsNum$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_number.js, requires-body=true, timeout=10, tag=山姆购物车角标
+http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/trade\/cart\/getTotalGoodsNum$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_number.js, requires-body=true, timeout=10, tag=购物车角标
 # 我的页面续费横幅
 http-response ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_adgroup.js, requires-body=true, timeout=10, tag=自动续费横幅
 [MitM]
