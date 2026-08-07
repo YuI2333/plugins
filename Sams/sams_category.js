@@ -4,22 +4,19 @@ try {
     if (obj.data && obj.data.dataList) {
         
         function cleanNode(node) {
-            // 1. 无差别清除角标 (如：得力文具、野生菌)
-            if (node.iconMsg !== undefined) {
-                delete node.iconMsg;
-            }
+            // 1. 无差别删除所有可能的独立图标字段
+            const badKeys = ['iconMsg', 'icon', 'iconUrl', 'leftIcon', 'menuIcon', 'tag', 'tagUrl'];
+            badKeys.forEach(k => {
+                if (node[k] !== undefined) delete node[k];
+            });
             
-            // 2. 清除可能由服务端直接下发的图标链接字段
-            if (node.icon) delete node.icon;
-            if (node.iconUrl) delete node.iconUrl;
-            
-            // 3. 强力正则：清除标题开头的所有【非中文、非字母、非数字】字符
-            // 此逻辑可以精准打击 🔥 等所有 Emoji 符号及特殊占位符，且不受 Unicode 编码更新影响
+            // 2. 终极正则：只保留中文、字母、数字、斜杠(/)、横杠(-)、空格、和号(&)与括号
+            // 其他所有花里胡哨的字符（包含一切已知和未知的 Emoji）统统抹除
             if (node.title && typeof node.title === 'string') {
-                node.title = node.title.replace(/^[^\u4e00-\u9fa5a-zA-Z0-9]+/, '').trim();
+                node.title = node.title.replace(/[^\u4e00-\u9fa5a-zA-Z0-9\/\-\(\)\s&]/g, '').trim();
             }
 
-            // 4. 递归遍历所有子分类
+            // 3. 递归清理子节点
             if (node.children && Array.isArray(node.children)) {
                 node.children.forEach(child => cleanNode(child));
             }
