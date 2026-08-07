@@ -11,7 +11,7 @@
 # 商品详情底部一起买
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/queryBySpuId$ reject-dict
 # 山姆调研
-^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/research\/getQuestion$ reject-dict
+#^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/configuration\/research\/getQuestion$ reject-dict
 # 山姆通知按钮数字
 ^https?:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/message\/portal\/systemMessage\/getTotalUnreadCount$ reject-dict
 # 山姆购物车猜你喜欢
