@@ -1,18 +1,16 @@
-let body = $response.body;
-
-if (body) {
+// 提前拦截无响应体的请求，防止 Loon 抛出底层变量缺失错误
+if (typeof $response === "undefined" || !$response.body) {
+    $done({});
+} else {
     try {
-        let obj = JSON.parse(body);
+        let obj = JSON.parse($response.body);
         
-        // 定位并移除搜索结果中穿插的关键词卡片节点
-        if (obj.data && obj.data.trySearchKeywordResponse) {
+        if (obj?.data?.trySearchKeywordResponse) {
             delete obj.data.trySearchKeywordResponse;
         }
         
         $done({ body: JSON.stringify(obj) });
-    } catch (err) {
-        $done({ body });
+    } catch (e) {
+        $done({});
     }
-} else {
-    $done({});
 }
