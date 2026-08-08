@@ -37,7 +37,7 @@
 
 [Script]
 
-山姆搜索去推荐 = type=http-response, pattern=^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/searchRecommendByKeyword, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search_filter.js, requires-body=true, timeout=10
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/searchRecommendByKeyword script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search_filter.js, requires-body=true, tag=山姆搜索去推荐
 # 门店页面底部去掉商品列表残留的分类按钮（门店商品等）
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/visitStoreApi\/getVisitStoreInfo script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_store_visit.js, requires-body=true, timeout=10, tag=屏蔽探店分类按钮
 # 分类页面优化
