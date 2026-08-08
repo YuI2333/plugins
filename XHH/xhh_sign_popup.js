@@ -2,17 +2,7 @@ try {
     let obj = JSON.parse($response.body);
     let url = $request.url;
 
-    if (url.includes("get_sign")) {
-        // 赋值为空字符串更安全，防止前端解析报错
-        obj.msg = ""; 
-        if (obj.result) {
-            // 将触发弹窗的布尔值强制拦截为 false
-            obj.result.plus_hcoin = false;
-            obj.result.plus_exp = false;
-            // 清理其他显示字段
-            ["notify_description", "description", "sign_in_coin", "sign_in_exp", "level_info"].forEach(k => delete obj.result[k]);
-        }
-    } else if (obj.result) {
+    if (obj.result) {
         if (url.includes("search/found")) {
             delete obj.result.search_found;
         } else if (url.includes("welcome_page/v2")) {
