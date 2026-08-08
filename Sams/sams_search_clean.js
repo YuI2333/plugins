@@ -1,10 +1,16 @@
 try {
     let obj = JSON.parse($response.body);
-    
+    let url = $request.url;
+
     if (obj && obj.data) {
-        // 去除“试试搜这些”
-        if (obj.data.trySearchKeywordResponse) {
-            delete obj.data.trySearchKeywordResponse;
+        if (url.includes("searchRecommendByKeyword")) {
+            if (Array.isArray(obj.data.dataList)) {
+                obj.data.dataList = [];
+            }
+        } else if (url.includes("/spu/search")) {
+            if (obj.data.trySearchKeywordResponse) {
+                delete obj.data.trySearchKeywordResponse;
+            }
         }
     }
     
