@@ -1,14 +1,18 @@
-try {
-    let obj = JSON.parse($response.body);
-    
-    if (obj && obj.data) {
-        // 去除“试试搜这些”
-        if (obj.data.trySearchKeywordResponse) {
+let body = $response.body;
+
+if (body) {
+    try {
+        let obj = JSON.parse(body);
+        
+        // 定位并移除搜索结果中穿插的关键词卡片节点
+        if (obj.data && obj.data.trySearchKeywordResponse) {
             delete obj.data.trySearchKeywordResponse;
         }
+        
+        $done({ body: JSON.stringify(obj) });
+    } catch (err) {
+        $done({ body });
     }
-    
-    $done({ body: JSON.stringify(obj) });
-} catch (e) {
+} else {
     $done({});
 }
