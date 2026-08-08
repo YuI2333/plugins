@@ -1,36 +1,37 @@
-/**
- * 山姆会员商店 - 搜索结果过滤
- * 功能：清空搜索结果 dataList，保持 JSON 结构完整，防止 App 报网络错误
- * 适配：Loon / Surge / Quantumult X
- */
-
-const body = $response.body;
-
 try {
-    let obj = JSON.parse(body);
+    let body = JSON.parse($response.body);
     
-    if (obj && obj.data) {
-        // 清空商品列表（核心：屏蔽搜索内容）
-        obj.data.dataList = [];
-        
-        // 重置分页与计数，避免前端异常
-        obj.data.totalCount = 0;
-        obj.data.hasNextPage = false;
-        if (obj.data.pageSize !== undefined) {
-            obj.data.pageSize = 0;
+    if (body && body.data) {
+        // 清空推荐数据列表
+        if (body.data.dataList) {
+            body.data.dataList = [];
         }
-        
-        // 确保外层状态码正常，防止 App 提示网络错误
-        obj.rt = 0;
-        obj.code = "Success";
-        obj.errorMsg = "";
-        obj.msg = "";
-        obj.success = true;
+        // 清空筛选项，避免UI出现无效的筛选条件
+        if (body.data.searchFilterList) {
+            body.data.searchFilterList = [];
+        }
+        if (body.data.cardFilterList) {
+            body.data.cardFilterList = [];
+        }
+        // 将总数和分页状态置零/关闭
+        if (body.data.totalCount !== undefined) {
+            body.data.totalCount = 0;
+        }
+        if (body.data.pageSize !== undefined) {
+            body.data.pageSize = 0;
+        }
+        if (body.data.hasNextPage !== undefined) {
+            body.data.hasNextPage = false;
+        }
+        if (body.data.isNextPage !== undefined) {
+            body.data.isNextPage = false;
+        }
     }
     
-    $done({ body: JSON.stringify(obj) });
-} catch (err) {
-    console.log("山姆搜索过滤脚本异常: " + err);
-    // 异常时原样返回，绝不断流
+    // 返回修改后的完整结构，避免APP报网络或解析错误
+    $done({ body: JSON.stringify(body) });
+} catch (e) {
+    console.log("山姆APP搜索推荐过滤脚本报错: " + e);
+    // 发生异常时原样返回，确保APP可用
     $done({});
 }
