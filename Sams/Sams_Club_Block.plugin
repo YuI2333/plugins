@@ -38,8 +38,8 @@
 [Script]
 
 
-
-
+# 购物车顶部“天气原因订单延迟”文字提示
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v3\/sams\/trade\/cart\/getUserCart requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_cart_banner.js, tag=山姆购物车去横幅
 # 搜索结果去推荐词
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/search([?].*)?$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search_clean.js, requires-body=true, timeout=10, tag=搜索结果去推荐词
 # 搜索结果去推荐
