@@ -38,6 +38,16 @@
 [Script]
 
 
+#!name=山姆分类角标去除
+#!desc=去除山姆App分类按钮上的“行李箱”等角标文字，彻底屏蔽各种活动小横幅
+#!author=Custom
+
+
+# 匹配装修页数据接口
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/decoration\/portal\/show\/getPageData requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_category_badge.js, tag=山姆角标净化
+
+
+
 
 # 使用正则匹配 queryOrderLists、queryOrderDetail 以及 getWeather 三个接口
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/(trade\/order\/queryOrder(Lists|Detail)|delivery\/portal\/weather\/getWeather) requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_order_list_banner.js, tag=山姆订单净化
