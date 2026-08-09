@@ -40,11 +40,6 @@
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/portal\/beUpdate reject-dict
 
 [Script]
-#!name=山姆隐藏待评价角标
-#!desc=隐藏“我的”界面中“待评价”按钮右上角的红色数字角标
-#!author=Custom
-
-[Script]
 # 待评价角标
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/user\/personal_order_info requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_wait_evaluation.js, tag=隐藏待评价角标
 # 各个页面右下角调研按钮
