@@ -62,7 +62,7 @@ http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/discover\/
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/comment\/goodscomment\/getWaitCommentOrAgaintList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_comment.js, requires-body=true, timeout=10, tag=评价完成页待评价
 # 搜索框热词
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/searchTextConf\/queryList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search.js, requires-body=true, timeout=10, tag=搜索框净化
-# 付款界面省心带一件
+# 付款界面省心带一件、天气提示
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/trade\/settlement\/getSettleInfo script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_buytogo_remove.js, requires-body=true, max-size=3145728, timeout=10, tag=付款界面省心带一件
 # 购物车数量角标隐藏
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/trade\/cart\/getTotalGoodsNum$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_number.js, requires-body=true, timeout=10, tag=购物车角标
