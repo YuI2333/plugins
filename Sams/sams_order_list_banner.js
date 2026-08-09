@@ -30,6 +30,13 @@ try {
                     obj.data.bannerInfo = null;
                 }
             }
+            
+            // 场景 3：处理【天气提示】接口 (getWeather)
+            if (obj.data.shippedWeatherTips !== undefined || obj.data.unshippedWeatherTips !== undefined) {
+                // 彻底删除发货与未发货情况下的恶劣天气提示
+                delete obj.data.shippedWeatherTips;
+                delete obj.data.unshippedWeatherTips;
+            }
         }
         
         $done({ body: JSON.stringify(obj) });
