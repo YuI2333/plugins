@@ -2,6 +2,14 @@
 #!desc=拦截各种无用模块和弹窗
 
 [Rewrite]
+
+#!name=山姆屏蔽评价触达
+#!desc=直接拦截山姆订单评价相关弹窗/提示请求
+#!author=Custom
+
+[Rewrite]
+# 骑手评价弹窗
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/comment\/commentTouch\/getPerformanceTouchOrder reject-dict
 # 购物车顶部“本订单可获得xx反馈金”提示
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/membership\/trans\/v\d\/getRebateDesc reject-dict
 # 加入购物车时的弹窗推荐
