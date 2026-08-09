@@ -2,6 +2,8 @@
 #!desc=拦截各种无用模块和弹窗
 
 [Rewrite]
+# 调研弹窗
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/questionnaire\/getPop response-body-replace-regex "isShow":\s*true "isShow":false"
 # 骑手评价弹窗
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/comment\/commentTouch\/getPerformanceTouchOrder reject-dict
 # 购物车顶部“本订单可获得xx反馈金”提示
