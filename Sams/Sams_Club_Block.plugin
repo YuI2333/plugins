@@ -2,7 +2,7 @@
 #!desc=拦截各种无用模块和弹窗
 
 [Rewrite]
-# 调研弹窗
+# 我的页面调研弹窗
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/questionnaire\/getPop response-body-replace-regex "isShow":\s*true "isShow":false"
 # 骑手评价弹窗
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/comment\/commentTouch\/getPerformanceTouchOrder reject-dict
@@ -41,14 +41,8 @@
 
 [Script]
 
-
-
-# 匹配 getQuestion 调研接口并调用脚本净化
+# 各个页面右下角调研按钮
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/research\/getQuestion requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_research_block.js, tag=山姆调研净化
-
-
-
-
 # 线上专享页面分类按钮角标
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/decoration\/portal\/show\/getPageData requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_category_badge.js, tag=线上专享分类按钮角标
 # 订单、订单内、配送界面的天气提示
