@@ -1,5 +1,5 @@
 #!name=山姆会员商店净化
-#!desc=拦截山姆App调研弹窗、通知按钮红点数字、搜索框推荐词、购物车猜你喜欢、我的页面常买列表以及门店页面商品列表等
+#!desc=拦截各种无用模块和弹窗
 
 [Rewrite]
 # 购物车顶部“本订单可获得xx反馈金”提示
@@ -38,22 +38,10 @@
 [Script]
 
 
-#!name=山姆分类角标去除
-#!desc=去除山姆App分类按钮上的“行李箱”等角标文字，彻底屏蔽各种活动小横幅
-#!author=Custom
-
-
-# 匹配装修页数据接口
-http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/decoration\/portal\/show\/getPageData requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_category_badge.js, tag=山姆角标净化
-
-
-
-
-# 使用正则匹配 queryOrderLists、queryOrderDetail 以及 getWeather 三个接口
-http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/(trade\/order\/queryOrder(Lists|Detail)|delivery\/portal\/weather\/getWeather) requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_order_list_banner.js, tag=山姆订单净化
-
-
-
+# 线上专享页面分类按钮角标
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/decoration\/portal\/show\/getPageData requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_category_badge.js, tag=线上专享分类按钮角标
+# 订单、订单内、配送界面的天气提示
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/(trade\/order\/queryOrder(Lists|Detail)|delivery\/portal\/weather\/getWeather) requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_order_list_banner.js, tag=订单内天气提示
 # 购物车顶部“天气原因订单延迟”和定时达极速达后面的文字提示
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v3\/sams\/trade\/cart\/getUserCart requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_cart_banner.js, tag=购物车文字提示
 # 搜索结果去推荐词
