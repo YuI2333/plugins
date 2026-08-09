@@ -14,6 +14,18 @@ try {
         let newList = [];
 
         for (let module of obj.data.pageModuleVOList) {
+            
+            // 【修复关键】：山姆用透明的图片广告来做豆腐块缝隙，这里单独把“分隔符”图片放行
+            if (module.moduleSign === "imageAdsModule") {
+                let title = module.title || "";
+                let assocName = module.moduleContent?.associationName || "";
+                if (title.includes("分隔") || assocName.includes("分隔")) {
+                    newList.push(module);
+                }
+                continue; // 真正的图片硬广依然会被拦截丢弃
+            }
+
+            // 非白名单模块直接拦截
             if (!allowList.has(module.moduleSign)) continue;
 
             if (module.moduleSign === "tofuCubeModule") {
