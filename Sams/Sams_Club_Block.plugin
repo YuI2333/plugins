@@ -38,8 +38,9 @@
 [Script]
 
 
-# 使用正则匹配 queryOrderLists 和 queryOrderDetail 两个接口
-http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/trade\/order\/queryOrder(Lists|Detail) requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_order_list_banner.js, tag=山姆订单净化
+
+# 使用正则匹配 queryOrderLists、queryOrderDetail 以及 getWeather 三个接口
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/(trade\/order\/queryOrder(Lists|Detail)|delivery\/portal\/weather\/getWeather) requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_order_list_banner.js, tag=山姆订单净化
 
 
 
