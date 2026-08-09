@@ -1,10 +1,12 @@
 try {
     if ($response && $response.body) {
+        let url = $request.url;
         let obj = JSON.parse($response.body);
         
         if (obj?.data) {
+            
             // 场景 1：处理【订单列表】接口 (queryOrderLists)
-            if (Array.isArray(obj.data.orderGroupDataList)) {
+            if (url.includes("queryOrderLists") && Array.isArray(obj.data.orderGroupDataList)) {
                 for (let i = 0; i < obj.data.orderGroupDataList.length; i++) {
                     let group = obj.data.orderGroupDataList[i];
                     if (Array.isArray(group?.orders)) {
@@ -23,7 +25,7 @@ try {
             }
             
             // 场景 2：处理【订单详情】接口 (queryOrderDetail)
-            if (obj.data.bannerInfo && !Array.isArray(obj.data.bannerInfo)) {
+            else if (url.includes("queryOrderDetail") && obj.data.bannerInfo) {
                 delete obj.data.bannerInfo.deliveryDelayTipsNewList;
                 delete obj.data.bannerInfo.deliveryDelayTips;
                 if (Object.keys(obj.data.bannerInfo).length === 0) {
@@ -31,11 +33,18 @@ try {
                 }
             }
             
-            // 场景 3：处理【天气提示】接口 (getWeather)
-            if (obj.data.shippedWeatherTips !== undefined || obj.data.unshippedWeatherTips !== undefined) {
-                // 彻底删除发货与未发货情况下的恶劣天气提示
+            // 场景 3：处理【天气接口】(getWeather) -> 彻底干掉天气数据
+            else if (url.includes("getWeather")) {
+                // 斩草除根：干掉天气状态、温度、风力、湿度和所有提示
+                delete obj.data.weather;
+                delete obj.data.weatherEum;
+                delete obj.data.temperature;
+                delete obj.data.windpower;
+                delete obj.data.winddirection;
+                delete obj.data.humidity;
                 delete obj.data.shippedWeatherTips;
                 delete obj.data.unshippedWeatherTips;
+                // 仅保留 province 和 city，防止 App 获取不到基础定位字段而崩溃
             }
         }
         
