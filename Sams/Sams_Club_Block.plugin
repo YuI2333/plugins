@@ -38,6 +38,11 @@
 [Script]
 
 
+# 使用正则匹配 queryOrderLists 和 queryOrderDetail 两个接口
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/trade\/order\/queryOrder(Lists|Detail) requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_order_list_banner.js, tag=山姆订单净化
+
+
+
 # 购物车顶部“天气原因订单延迟”和定时达极速达后面的文字提示
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v3\/sams\/trade\/cart\/getUserCart requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_cart_banner.js, tag=购物车文字提示
 # 搜索结果去推荐词
