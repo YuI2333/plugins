@@ -15,17 +15,45 @@ try {
 
         for (let module of obj.data.pageModuleVOList) {
             
-            // 【修复关键】：山姆用透明的图片广告来做豆腐块缝隙，这里单独把“分隔符”图片放行
             if (module.moduleSign === "imageAdsModule") {
                 let title = module.title || "";
                 let assocName = module.moduleContent?.associationName || "";
+                let advName = module.pageModuleAdvertiserName || "";
+
+                // 1. 放行透明的图片“分隔符”
                 if (title.includes("分隔") || assocName.includes("分隔")) {
                     newList.push(module);
+                    continue;
                 }
-                continue; // 真正的图片硬广依然会被拦截丢弃
+
+                // 2. 识别并放行顶部动态横幅（包含 顶通/横幅/gif 等标识）
+                if (title.includes("顶通") || title.includes("横幅") || advName.includes("顶通") || title.toLowerCase().includes("gif")) {
+                    if (module.renderContent?.originalItemList) {
+                        // 过滤横幅内的第三方商业硬广
+                        module.renderContent.originalItemList = module.renderContent.originalItemList.filter(item => {
+                            let itemTitle = item.title || "";
+                            let itemTitleEn = item.titleEn || "";
+                            return !(itemTitle.includes("商业化") || itemTitleEn.includes("商业化") || itemTitle.includes("广告"));
+                        });
+
+                        // 阻止可能存在的自动轮播
+                        module.renderContent.originalItemList.forEach(item => {
+                            if (item.boomInterval) item.boomInterval = 99999;
+                        });
+                    }
+
+                    // 过滤后若仍有内部活动内容，则放行该横幅
+                    if (module.renderContent?.originalItemList?.length > 0) {
+                        newList.push(module);
+                    }
+                    continue; 
+                }
+
+                // 其他真正的图片硬广依然会被拦截丢弃
+                continue; 
             }
 
-            // 非白名单模块直接拦截
+            // 非白名单模块直接拦截（瀑布流推荐商品等亦会被拦截）
             if (!allowList.has(module.moduleSign)) continue;
 
             if (module.moduleSign === "tofuCubeModule") {
@@ -52,7 +80,7 @@ try {
                 if (module.bizStyle) module.bizStyle.transitionDelay = 99999;
                 
                 if (module.renderContent?.originalItemList) {
-                    // 过滤掉包含“商业化”或“广告”标识的第三方硬广（例如：POV5-商业化雀巢）
+                    // 过滤掉包含“商业化”或“广告”标识的第三方硬广
                     module.renderContent.originalItemList = module.renderContent.originalItemList.filter(item => {
                         let title = item.title || "";
                         let titleEn = item.titleEn || "";
@@ -61,7 +89,7 @@ try {
 
                     // 阻止自动轮播
                     module.renderContent.originalItemList.forEach(item => {
-                        item.boomInterval = 99999;
+                        if (item.boomInterval) item.boomInterval = 99999;
                     });
                 }
             }
