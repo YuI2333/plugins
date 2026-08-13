@@ -3,10 +3,10 @@
 
 [Rewrite]
 # 1. 屏蔽贴吧遥测 SDK (返回 HTTP 200 空内容)
-^https?:\/\/dmpstatic\.cdn\.bcebos\.com\/weirwood-sdk\/.* reject-200
+^https?:\/\/dmpstatic\.cdn\.bcebos\.com\/weirwood-sdk\/.* reject-img
 
 # 2. 屏蔽贴吧特定广告图及推广素材目录 (返回 HTTP 200 空内容)
-^https?:\/\/tieba-ares\.cdn\.bcebos\.com\/mis\/.* reject-200
+^https?:\/\/tieba-ares\.cdn\.bcebos\.com\/mis\/.* reject-img
 
 # 3. 拦截红包雨、抽奖结果及活动推送核心 JS 组件 (返回 HTTP 200 空内容)
 #待确认^https?:\/\/.*?\.(bcebos|bdstatic|baidu)\.com\/.*?\/static\/js\/(prizeResult|spring-flip-card-horse|push-notice|hot-circle)\.[a-f0-9]+\.js reject-200
