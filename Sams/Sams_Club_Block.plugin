@@ -40,6 +40,8 @@
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/portal\/beUpdate reject-dict
 
 [Script]
+# 支付成功界面推荐商品
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/order\/paymentSuccessRecommend script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_paymentSuccessRecommend.js, requires-body=true, timeout=10, tag=支付成功界面推荐商品
 # 待评价角标
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/user\/personal_order_info requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_wait_evaluation.js, tag=隐藏待评价角标
 # 各个页面右下角调研按钮
