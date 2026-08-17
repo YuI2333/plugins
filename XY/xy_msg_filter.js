@@ -2,24 +2,26 @@ let body = $response.body;
 try {
     let obj = JSON.parse(body);
     
-    // 发送方黑名单：直接拦截这些账号的所有推送，一劳永逸
+    // 账号黑名单：直接彻底屏蔽该账号的所有下发内容
     const blacklistedNicks = ["闲鱼精选", "闲鱼情报局"];
     
+    // 垃圾消息特征词：用于精确剔除“系统消息”中夹杂的官方广告
+    const spamKeywords = ["闲鱼币", "优推抵扣", "千万曝光", "红包助力"];
+    
     if (obj.data) {
-        // 1. 处理会话列表 (session.sync)
+        // 1. 过滤外部会话列表 (session.sync)
         if (obj.data.sessions) {
             obj.data.sessions = obj.data.sessions.filter(item => {
                 let nick = item?.session?.userInfo?.nick || "";
                 let summary = item?.message?.summary?.summary || "";
                 
-                // 拦截黑名单账号的会话
+                // 拦截纯营销账号
                 if (blacklistedNicks.includes(nick)) {
                     return false;
                 }
                 
-                // 针对“系统消息”账号：不建议全部拉黑，以免漏掉交易维权等重要通知
-                // 仅针对性屏蔽闲鱼币等极其固定的系统提醒
-                if (nick === "系统消息" && summary.includes("闲鱼币")) {
+                // 拦截系统账号夹带的广告摘要
+                if (spamKeywords.some(kw => summary.includes(kw))) {
                     return false;
                 }
                 
@@ -27,19 +29,21 @@ try {
             });
         }
 
-        // 2. 处理具体消息流 (message.sync)
+        // 2. 过滤内部消息流 (message.sync)
         if (obj.data.messages) {
             obj.data.messages = obj.data.messages.filter(item => {
                 let senderNick = item?.senderInfo?.nick || "";
+                let contentStr = JSON.stringify(item?.content || {});
                 
-                // 拦截黑名单账号下发的所有消息卡片
+                // 拦截纯营销账号下发的消息体
                 if (blacklistedNicks.includes(senderNick)) {
                     return false;
                 }
                 
-                // 备用方案：通过内容类型拦截（28通常为营销类动态卡片，若仍有漏网之鱼可取消下方注释）
-                // let contentType = item?.content?.contentType;
-                // if (contentType === "28") return false;
+                // 拦截系统账号下发的具体广告卡片
+                if (spamKeywords.some(kw => contentStr.includes(kw))) {
+                    return false;
+                }
                 
                 return true;
             });
