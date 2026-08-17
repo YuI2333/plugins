@@ -2,11 +2,12 @@ let body = $response.body;
 try {
     let obj = JSON.parse(body);
     
-    // 纯广告账号黑名单
+    // 黑名单与关键词配置
     const blacklistedNicks = ["闲鱼精选", "闲鱼情报局"];
-    
-    // 兜底关键词：处理外层消息列表的摘要
     const spamKeywords = ["闲鱼币", "红包", "兑好礼", "优推抵扣", "回血", "曝光"];
+    
+    // 白名单配置：包含以下关键词的消息将被绝对放行
+    const whiteKeywords = ["关注了您"];
     
     if (obj.data) {
         // 1. 处理外层会话列表 (session.sync)
@@ -15,8 +16,19 @@ try {
                 let nick = item?.session?.userInfo?.nick || "";
                 let summary = item?.message?.summary?.summary || "";
                 
-                if (blacklistedNicks.includes(nick)) return false;
-                if (spamKeywords.some(kw => summary.includes(kw))) return false;
+                // 优先判断：命中白名单直接放行
+                if (whiteKeywords.some(kw => summary.includes(kw))) {
+                    return true;
+                }
+                
+                // 拦截纯广告账号
+                if (blacklistedNicks.includes(nick)) {
+                    return false;
+                }
+                // 拦截垃圾关键词
+                if (spamKeywords.some(kw => summary.includes(kw))) {
+                    return false;
+                }
                 
                 return true;
             });
@@ -28,16 +40,20 @@ try {
                 let senderNick = item?.senderInfo?.nick || item?.sessionInfo?.userInfo?.nick || "";
                 let contentStr = JSON.stringify(item?.content || {});
                 
-                // 拦截纯广告账号下发的所有消息
-                if (blacklistedNicks.includes(senderNick)) return false;
+                // 优先判断：命中白名单直接放行
+                if (whiteKeywords.some(kw => contentStr.includes(kw))) {
+                    return true;
+                }
                 
-                // 核心过滤：拦截带有营销追踪代码的广告卡片（无视文案变化）
-                // 抓包显示，广告统一带有 xianyu_growth_push 或 moyu-project 标识
+                // 拦截纯广告账号
+                if (blacklistedNicks.includes(senderNick)) {
+                    return false;
+                }
+                // 拦截带有营销追踪代码的卡片
                 if (contentStr.includes("xianyu_growth_push") || contentStr.includes("moyu-project")) {
                     return false;
                 }
-                
-                // 兜底过滤：拦截包含特殊营销词汇的卡片
+                // 拦截包含特殊营销词汇的卡片
                 if (spamKeywords.some(kw => contentStr.includes(kw))) {
                     return false;
                 }
