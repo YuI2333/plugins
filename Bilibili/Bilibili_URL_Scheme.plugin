@@ -2,8 +2,10 @@
 #!desc=将网页端B站视频、番剧、直播及UP主空间链接重定向至哔哩哔哩国际版客户端
 
 [Rewrite]
-# BV视频跳转
+# BV视频跳转 (兼容移动端m与桌面端www)
 (?i)^https?:\/\/(?:m|www)\.bilibili\.com\/video\/(BV[a-zA-Z0-9]+).* bilibili://video/$1 302
+# AV视频跳转 (补充适配早期av号视频)
+(?i)^https?:\/\/(?:m|www)\.bilibili\.com\/video\/av([0-9]+).* bilibili://video/$1 302
 # 番剧剧集页面 (ss开头) 跳转
 (?i)^https?:\/\/(?:m|www)\.bilibili\.com\/bangumi\/play\/ss([0-9]+).* bilibili://bangumi/season/$1 302
 # 番剧单集页面 (ep开头) 跳转
