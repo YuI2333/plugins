@@ -7,7 +7,7 @@
 # 番剧剧集页面 (ss开头) 跳转
 (?i)^https?:\/\/(?:m|www)\.bilibili\.com\/bangumi\/play\/ss([0-9]+).* bilibili://bangumi/season/$1 302
 # 番剧单集页面 (ep开头) 跳转
-(?i)^https?:\/\/(?:m|www)\.bilibili\.com\/bangumi\/play\/ep([0-9]+).* bilibili://bangumi/episode/$1 302
+(?i)^https?:\/\/(?:m|www)\.bilibili\.com\/bangumi\/play\/ep([0-9]+).* bilibili://pgc/season/ep/$1 302
 # UP主个人空间页面跳转
 (?i)^https?:\/\/(?:m\.bilibili\.com\/space|space\.bilibili\.com)\/([0-9]+).* bilibili://space/$1 302
 
