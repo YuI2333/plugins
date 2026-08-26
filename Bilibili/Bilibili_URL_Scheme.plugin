@@ -1,5 +1,5 @@
 #!name=跳转哔哩哔哩国际版
-#!desc=将网页端B站视频、番剧及UP主空间链接重定向至哔哩哔哩国际版客户端
+#!desc=将网页端B站视频、番剧、直播及UP主空间链接重定向至哔哩哔哩国际版客户端
 
 [Rewrite]
 # BV视频跳转
@@ -10,6 +10,8 @@
 (?i)^https?:\/\/(?:m|www)\.bilibili\.com\/bangumi\/play\/ep([0-9]+).* bilibili://pgc/season/ep/$1 302
 # UP主个人空间页面跳转
 (?i)^https?:\/\/(?:m\.bilibili\.com\/space|space\.bilibili\.com)\/([0-9]+).* bilibili://space/$1 302
+# 直播间页面跳转
+(?i)^https?:\/\/live\.bilibili\.com\/(?:h5\/|m\/)?([0-9]+).* bilibili://live/$1 302
 
 [MitM]
-hostname = m.bilibili.com, www.bilibili.com, space.bilibili.com
+hostname = m.bilibili.com, www.bilibili.com, space.bilibili.com, live.bilibili.com
