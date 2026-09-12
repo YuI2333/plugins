@@ -6,14 +6,18 @@ if (!body) {
     try {
         let obj = JSON.parse(body);
         if (obj && Array.isArray(obj.data)) {
-            // 过滤掉类型为 4(会籍账户), 5(山姆活动), 7(互动消息) 的数据
-            obj.data = obj.data.filter(item => {
-                return item && ![4, 5, 7].includes(item.currentType);
+            // 遍历数组，保留数据节点但清空核心内容，避免客户端找不到对象而崩溃
+            obj.data.forEach(item => {
+                if ([4, 5, 7].includes(item.currentType)) {
+                    item.text = null;
+                    item.firstMessageTitle = null;
+                    item.imageUrl = null;
+                    item.unreadCount = "0";
+                }
             });
         }
         $done({ body: JSON.stringify(obj) });
     } catch (e) {
-        console.log("山姆通知脚本解析异常: " + e);
         $done({});
     }
 }
