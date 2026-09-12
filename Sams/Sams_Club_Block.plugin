@@ -23,7 +23,7 @@
 # 山姆门店页面商品列表
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/visitStoreApi\/queryRecommendGoodsList$ reject-dict
 # 通知内容一刀切全干掉
-# ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList$ reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList$ reject-dict
 # 我的页面门店服务
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/storeApi\/getStoreServerListV2$ reject-dict
 # 搜索界面热搜精选
@@ -41,7 +41,7 @@
 
 [Script]
 # 通知界面净化
-http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_notice.js, requires-body=true, timeout=10, tag=山姆通知净化
+# http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_notice.js, requires-body=true, timeout=10, tag=山姆通知净化
 # 支付成功界面推荐商品
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/order\/paymentSuccessRecommend script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_paymentSuccessRecommend.js, requires-body=true, timeout=10, tag=支付成功界面推荐商品
 # 待评价角标
