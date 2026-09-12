@@ -23,7 +23,7 @@
 # 山姆门店页面商品列表
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/visitStoreApi\/queryRecommendGoodsList$ reject-dict
 # 通知内容一刀切全干掉
-^https:\/\/api(-green)?-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList$ reject-dict
+# ^https:\/\/api(-green)?-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList$ reject-dict
 # 我的页面门店服务
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/storeApi\/getStoreServerListV2$ reject-dict
 # 搜索界面热搜精选
@@ -40,12 +40,14 @@
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/portal\/beUpdate reject-dict
 
 [Script]
+# 通知界面净化
+http-response ^https:\/\/api(-green)?-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_notice.js, requires-body=true, timeout=10, tag=通知净化
 # 支付成功界面推荐商品
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/order\/paymentSuccessRecommend script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_paymentSuccessRecommend.js, requires-body=true, timeout=10, tag=支付成功界面推荐商品
 # 待评价角标
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/sams-user\/user\/personal_order_info requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_wait_evaluation.js, tag=隐藏待评价角标
 # 各个页面右下角调研按钮
-http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/research\/getQuestion requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_research_block.js, tag=山姆调研净化
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/configuration\/research\/getQuestion requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_research_block.js, tag=调研净化
 # 线上专享页面分类按钮角标
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/decoration\/portal\/show\/getPageData requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_category_badge.js, tag=线上专享分类按钮角标
 # 订单、订单内、配送界面的天气提示
