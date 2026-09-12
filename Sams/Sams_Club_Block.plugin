@@ -41,7 +41,7 @@
 
 [Script]
 # 通知界面净化
-http-response ^https:\/\/api(-green)?-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_notice.js, requires-body=true, timeout=10, tag=通知净化
+http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_notice.js, requires-body=true, timeout=10, tag=山姆通知净化
 # 支付成功界面推荐商品
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-sr-portal\/order\/paymentSuccessRecommend script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_paymentSuccessRecommend.js, requires-body=true, timeout=10, tag=支付成功界面推荐商品
 # 待评价角标
@@ -78,4 +78,4 @@ http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/trade\/car
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/channel\/portal\/AdgroupData\/queryAdgroup$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_adgroup.js, requires-body=true, timeout=10, tag=自动续费横幅
 
 [MitM]
-hostname = api-sams.walmartmobile.cn, api-green-sams.walmartmobile.cn
+hostname = api-sams.walmartmobile.cn
