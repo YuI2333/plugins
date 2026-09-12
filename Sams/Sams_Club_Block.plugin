@@ -23,7 +23,7 @@
 # 山姆门店页面商品列表
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/visitStoreApi\/queryRecommendGoodsList$ reject-dict
 # 通知内容一刀切全干掉
-# ^https:\/\/api(-green)?-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList$ reject-dict
+^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/message\/portal\/systemMessage\/getHomeMessageList$ reject-dict
 # 我的页面门店服务
 ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/merchant\/storeApi\/getStoreServerListV2$ reject-dict
 # 搜索界面热搜精选
