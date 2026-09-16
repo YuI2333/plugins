@@ -3,7 +3,7 @@
 
 [Rewrite]
 # 1. 屏蔽贴吧遥测 SDK (返回 HTTP 200 空内容)
-^https?:\/\/dmpstatic\.cdn\.bcebos\.com\/weirwood-sdk\/.* reject-img
+# ^https?:\/\/dmpstatic\.cdn\.bcebos\.com\/weirwood-sdk\/.* reject-img
 
 # 2. 屏蔽贴吧特定广告图及推广素材目录 (返回 HTTP 200 空内容)
 ^https?:\/\/tieba-ares\.cdn\.bcebos\.com\/mis\/.* reject-img
