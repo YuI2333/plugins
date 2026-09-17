@@ -54,7 +54,9 @@ http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/decoration
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v\d\/sams\/(trade\/order\/queryOrder(Lists|Detail)|delivery\/portal\/weather\/getWeather) requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_order_list_banner.js, tag=订单内天气提示
 # 购物车顶部“天气原因订单延迟”和定时达极速达后面的文字提示
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v3\/sams\/trade\/cart\/getUserCart requires-body=1, max-size=3145728, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_cart_banner.js, tag=购物车文字提示
-# 搜索结果去推荐词
+# 搜索结果去推荐词1
+http-request ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/search script-path= https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search_clean1.js, requires-body=false, tag=搜索结果去推荐词-去除压缩限制
+# 搜索结果去推荐词2
 http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/search([?].*)?$ script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search_clean.js, requires-body=true, timeout=10, tag=搜索结果去推荐词
 # 搜索结果去推荐
 #http-response ^https:\/\/api-sams\.walmartmobile\.cn\/api\/v1\/sams\/goods-portal\/spu\/searchRecommendByKeyword script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/Sams/sams_search_filter.js, requires-body=true, timeout=10, tag=搜索结果去推荐商品
