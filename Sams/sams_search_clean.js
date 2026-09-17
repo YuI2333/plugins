@@ -5,27 +5,31 @@ if (body) {
         let obj = JSON.parse(body);
         let modified = false;
 
-        // 核心逻辑：只在真真切切下发了“穿插关键词”时，才去干预！
-        if (obj.data && obj.data.trySearchKeywordResponse && Array.isArray(obj.data.trySearchKeywordResponse.dataList)) {
+        // 使用可选链 (?.) 安全判断，避免因缺少某一层级导致 undefined 报错
+        if (obj?.data?.trySearchKeywordResponse?.dataList?.length > 0) {
             
-            // 判断如果有关键词，才执行删除操作
-            if (obj.data.trySearchKeywordResponse.dataList.length > 0) {
-                // 场景 A：正常搜到了商品，且带有推荐词（第一版证明了此时删除是最完美的）
-                delete obj.data.trySearchKeywordResponse;
-                modified = true;
-            }
+            // 优化点1：不使用 delete 删除对象，防止 App 原生解析抛出空指针异常
+            // 改为清空推荐词数组和总数，完美维持原有的 JSON 树结构
+            obj.data.trySearchKeywordResponse.dataList = [];
+            obj.data.trySearchKeywordResponse.totalCount = 0;
+            modified = true;
         }
         
-        // 只有修改过的数据，才需要重新封包返回
         if (modified) {
-            $done({ body: JSON.stringify(obj) });
+            // 优化点2：修复 iOS JavaScriptCore 经典缺陷
+            // 强制转义行分隔符和段落分隔符，彻底杜绝 __LOONRequestBody__ 异常
+            let newBody = JSON.stringify(obj)
+                .replace(/\u2028/g, '\\u2028')
+                .replace(/\u2029/g, '\\u2029');
+                
+            $done({ body: newBody });
         } else {
-            // 场景 B：空页面、敏感词、乱码搜索，本来就没有下发关键词。
-            // 此时我们【绝对不碰】数据包，原封不动放行，彻底杜绝 JSON.stringify 引起的解析异常！
+            // 数据未修改，原样放行
             $done({});
         }
     } catch (err) {
-        $done({}); // 遇到任何 JS 解析异常，也原样放行，保底不断网
+        // 捕获异常，原样放行保底
+        $done({});
     }
 } else {
     $done({});
