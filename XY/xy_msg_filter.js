@@ -10,9 +10,8 @@ try {
     const whiteKeywordsReg = /关注了您|发货|签收|拍下|退款/i;
 
     if (obj?.data) {
-        // 1. 处理外层会话列表 (核心逻辑变更)
+        // 1. 处理外层会话列表
         if (Array.isArray(obj.data.sessions)) {
-            // 使用 forEach 遍历修改，而不使用 filter 删除，用于覆盖APP本地TCP推送缓存
             obj.data.sessions.forEach(item => {
                 const session = item?.session;
                 if (!session) return;
@@ -21,6 +20,12 @@ try {
                 if (!summaryObj) return;
                 
                 const summary = summaryObj.summary || "";
+
+                // 修改互动消息默认占位文本
+                if (String(session.sessionType) === "6" && summary === "[和TA聊一聊吧]") {
+                    summaryObj.summary = "无";
+                }
+
                 if (whiteKeywordsReg.test(summary)) return;
 
                 const uInfo = session.userInfo || {};
@@ -34,15 +39,14 @@ try {
                 if (!isAd && (blackNicks.has(uInfo.nick) || blackNicks.has(oInfo.nick))) isAd = true;
                 if (!isAd && adKeywordsReg.test(summary)) isAd = true;
 
-                // 命中广告特征后，覆写数据以消除红点缓存
                 if (isAd) {
-                    summaryObj.summary = "无"; // 替换外层干扰文案
-                    summaryObj.unread = "0";      // 强制清零未读红点
+                    summaryObj.summary = "无"; 
+                    summaryObj.unread = "0";      
                 }
             });
         }
 
-        // 2. 处理内层具体消息 (内层无外围缓存机制，继续使用 filter 直接剔除)
+        // 2. 处理内层具体消息
         if (Array.isArray(obj.data.messages)) {
             obj.data.messages = obj.data.messages.filter(item => {
                 const sInfo = item?.sessionInfo || {};
