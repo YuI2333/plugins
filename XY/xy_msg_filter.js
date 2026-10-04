@@ -6,56 +6,53 @@ try {
     const blackSessionTypes = new Set(["25"]);
     const blackNicks = new Set(["闲鱼精选", "闲鱼情报局"]);
     
-    const adKeywordsReg = /闲鱼币|红包|兑好礼|优推抵扣|曝光|捡漏|白菜价|能量|即将过期/i;
+    const adKeywordsReg = /闲鱼币|红包|兑好礼|优推抵扣|曝光|捡漏|白菜价|能量|即将过期|待领/i;
     const whiteKeywordsReg = /关注了您|发货|签收|拍下|退款/i;
 
     if (obj?.data) {
-        // 1. 过滤外层会话列表
+        // 1. 处理外层会话列表 (核心逻辑变更)
         if (Array.isArray(obj.data.sessions)) {
-            obj.data.sessions = obj.data.sessions.filter(item => {
+            // 使用 forEach 遍历修改，而不使用 filter 删除，用于覆盖APP本地TCP推送缓存
+            obj.data.sessions.forEach(item => {
                 const session = item?.session;
-                if (!session) return true;
+                if (!session) return;
 
-                const summary = item?.message?.summary?.summary || "";
+                let summaryObj = item?.message?.summary;
+                if (!summaryObj) return;
                 
-                // 白名单最高优先级
-                if (whiteKeywordsReg.test(summary)) return true;
+                const summary = summaryObj.summary || "";
+                if (whiteKeywordsReg.test(summary)) return;
 
-                // 缓存对象引用，减少原型链访问开销
                 const uInfo = session.userInfo || {};
                 const oInfo = session.ownerInfo || {};
 
-                // 【性能优化】低成本属性比对前置：命中后直接剔除，跳过后续耗时的正则匹配
-                if (blackSessionTypes.has(String(session.sessionType))) return false;
-                if (blackTargetIds.has(String(session.targetId)) || 
+                let isAd = false;
+                if (blackSessionTypes.has(String(session.sessionType))) isAd = true;
+                if (!isAd && (blackTargetIds.has(String(session.targetId)) || 
                     blackTargetIds.has(String(uInfo.userId)) || 
-                    blackTargetIds.has(String(oInfo.userId))) return false;
-                if (blackNicks.has(uInfo.nick) || blackNicks.has(oInfo.nick)) return false;
+                    blackTargetIds.has(String(oInfo.userId)))) isAd = true;
+                if (!isAd && (blackNicks.has(uInfo.nick) || blackNicks.has(oInfo.nick))) isAd = true;
+                if (!isAd && adKeywordsReg.test(summary)) isAd = true;
 
-                // 兜底正则匹配后置
-                if (adKeywordsReg.test(summary)) return false;
-
-                return true;
+                // 命中广告特征后，覆写数据以消除红点缓存
+                if (isAd) {
+                    summaryObj.summary = "已自动清理"; // 替换外层干扰文案
+                    summaryObj.unread = "0";      // 强制清零未读红点
+                }
             });
         }
 
-        // 2. 过滤内层具体消息
+        // 2. 处理内层具体消息 (内层无外围缓存机制，继续使用 filter 直接剔除)
         if (Array.isArray(obj.data.messages)) {
             obj.data.messages = obj.data.messages.filter(item => {
                 const sInfo = item?.sessionInfo || {};
                 const uInfo = sInfo.userInfo || {};
                 const sender = item?.senderInfo || {};
 
-                // 【性能优化】低成本的直接比对前置
                 if (blackSessionTypes.has(String(sInfo.sessionType))) return false;
                 if (blackNicks.has(sender.nick) || blackNicks.has(uInfo.nick)) return false;
-
-                // 【性能优化】彻底抛弃循环内的 JSON.parse()，直接使用字符串检索渠道标签
-                // 原代码需在循环体中 parse 几十次极耗性能，现改为底层字符级匹配
                 if (item.extJson && item.extJson.includes("MARKETING")) return false;
 
-                // 【性能优化】将对象深度序列化 JSON.stringify 放至最后
-                // 仅当上方低成本拦截均未命中时，才执行耗性能的序列化与长正则匹配
                 if (item.content) {
                     const contentStr = JSON.stringify(item.content);
                     if (whiteKeywordsReg.test(contentStr)) return true;
