@@ -36,7 +36,7 @@ try {
 
                 // 命中广告特征后，覆写数据以消除红点缓存
                 if (isAd) {
-                    summaryObj.summary = "已自动清理"; // 替换外层干扰文案
+                    summaryObj.summary = "无"; // 替换外层干扰文案
                     summaryObj.unread = "0";      // 强制清零未读红点
                 }
             });
