@@ -12,37 +12,41 @@ try {
     if (obj?.data) {
         // 1. 处理外层会话列表
         if (Array.isArray(obj.data.sessions)) {
-            obj.data.sessions.forEach(item => {
+            obj.data.sessions = obj.data.sessions.filter(item => {
                 const session = item?.session;
-                if (!session) return;
+                if (!session) return true;
 
                 let summaryObj = item?.message?.summary;
-                if (!summaryObj) return;
+                if (!summaryObj) return true;
                 
                 const summary = summaryObj.summary || "";
-
-                // 修改互动消息默认占位文本
-                if (String(session.sessionType) === "6" && summary === "[和TA聊一聊吧]") {
-                    summaryObj.summary = "无";
-                }
-
-                if (whiteKeywordsReg.test(summary)) return;
-
                 const uInfo = session.userInfo || {};
                 const oInfo = session.ownerInfo || {};
 
-                let isAd = false;
-                if (blackSessionTypes.has(String(session.sessionType))) isAd = true;
-                if (!isAd && (blackTargetIds.has(String(session.targetId)) || 
-                    blackTargetIds.has(String(uInfo.userId)) || 
-                    blackTargetIds.has(String(oInfo.userId)))) isAd = true;
-                if (!isAd && (blackNicks.has(uInfo.nick) || blackNicks.has(oInfo.nick))) isAd = true;
-                if (!isAd && adKeywordsReg.test(summary)) isAd = true;
+                // 提前声明并转换变量，减少重复执行 String() 方法带来的性能损耗
+                const sType = String(session.sessionType || "");
+                const tId = String(session.targetId || "");
+                const uId = String(uInfo.userId || "");
+                const oId = String(oInfo.userId || "");
 
-                if (isAd) {
+                if (blackSessionTypes.has(sType)) return false;
+                if (blackTargetIds.has(tId) || blackTargetIds.has(uId) || blackTargetIds.has(oId)) return false;
+                if (blackNicks.has(uInfo.nick) || blackNicks.has(oInfo.nick)) return false;
+
+                if (sType === "6" && summary === "[和TA聊一聊吧]") {
+                    summaryObj.summary = "无";
+                    return true;
+                }
+
+                if (whiteKeywordsReg.test(summary)) return true;
+
+                if (adKeywordsReg.test(summary)) {
                     summaryObj.summary = "无"; 
                     summaryObj.unread = "0";      
+                    return true;
                 }
+
+                return true;
             });
         }
 
@@ -52,13 +56,15 @@ try {
                 const sInfo = item?.sessionInfo || {};
                 const uInfo = sInfo.userInfo || {};
                 const sender = item?.senderInfo || {};
+                const sType = String(sInfo.sessionType || "");
 
-                if (blackSessionTypes.has(String(sInfo.sessionType))) return false;
+                if (blackSessionTypes.has(sType)) return false;
                 if (blackNicks.has(sender.nick) || blackNicks.has(uInfo.nick)) return false;
                 if (item.extJson && item.extJson.includes("MARKETING")) return false;
 
                 if (item.content) {
-                    const contentStr = JSON.stringify(item.content);
+                    // 判断对象类型，避免对已经是字符串的 content 执行 JSON.stringify 增加额外开销
+                    const contentStr = typeof item.content === 'string' ? item.content : JSON.stringify(item.content);
                     if (whiteKeywordsReg.test(contentStr)) return true;
                     if (contentStr.includes("xianyu_growth_push") || contentStr.includes("moyu-project")) return false;
                     if (adKeywordsReg.test(contentStr)) return false;
