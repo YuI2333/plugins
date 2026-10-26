@@ -1,9 +1,11 @@
-#!name=闲鱼消息净化
-#!desc=移除闲鱼消息列表及内层通知中的无用广告。
-#!date=2026.8.17
+#!name = 闲鱼消息页净化
+#!desc = 移除消息列表中的通知消息(系统消息)、互动消息(留言)及闲鱼精选
+#!author = Custom
+#!tag = 净化
+#!system = iOS
 
 [Script]
-http-response ^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemessage\.(session|message)\.sync requires-body=true, timeout=10, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/XY/xy_msg_filter.js, tag=闲鱼消息净化
+http-response ^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemessage\.session\.sync\/ script-code=let b=$response.body;if(b){try{let o=JSON.parse(b);if(o?.data?.sessions&&Array.isArray(o.data.sessions)){o.data.sessions=o.data.sessions.filter(i=>{let s=i?.session;if(!s)return true;let t=String(s.sessionType||""),u=String(s?.userInfo?.type||""),id=String(s?.userInfo?.userId||s.targetId||""),n=String(s?.userInfo?.nick||"");return !(u==="10"||["3","6","25"].includes(t)||["100","200","1500"].includes(id)||["系统消息","通知消息","闲鱼精选","留言","互动消息"].includes(n));});b=JSON.stringify(o);}}catch(e){}}$done({body:b});, requires-body=true, timeout=10, tag=闲鱼消息列表净化
 
 [MITM]
 hostname = acs.m.goofish.com
