@@ -1,68 +1,54 @@
+/*
+ * 闲鱼消息极简净化脚本
+ * 逻辑：外层仅放行真实用户私聊(sessionType:1)，内层拦截非私聊消息流
+ */
+
 let body = $response.body;
+
 if (body) {
     try {
-        let obj = JSON.parse(body);
-        const api = String(obj.api || "");
+        const obj = JSON.parse(body);
+        const api = obj?.api || "";
+        const data = obj?.data;
 
-        if (obj.data) {
-            // 1. 外层消息列表 (session.sync)：彻底剔除通知消息(3)、互动消息(6)、闲鱼精选(25)
-            if (api.includes("session.sync") && Array.isArray(obj.data.sessions)) {
-                const blockTypes = ["3", "6", "25"];
-                const blockUserIds = ["100", "200", "1500"];
-                const blockNicks = ["系统消息", "通知消息", "闲鱼精选", "留言", "互动消息"];
+        if (data) {
+            // 1. 外层会话列表同步 (session.sync)
+            if (api.includes("session.sync") && Array.isArray(data.sessions)) {
+                const blockTypes = new Set(["3", "6", "25"]);
+                const blockUserIds = new Set(["100", "200", "1500"]);
 
-                obj.data.sessions = obj.data.sessions.filter(item => {
-                    const s = item && item.session;
-                    if (!s) return true;
+                data.sessions = data.sessions.filter(item => {
+                    const s = item?.session;
+                    if (!s) return false;
 
-                    const sType = String(s.sessionType || "");
-                    const uInfo = s.userInfo || {};
-                    const uType = String(uInfo.type || "");
-                    const uId = String(uInfo.userId || s.targetId || "");
-                    const uNick = String(uInfo.nick || "");
+                    const sType = String(s.sessionType ?? "");
+                    const uType = String(s?.userInfo?.type ?? "");
+                    const uId = String(s?.userInfo?.userId ?? s.targetId ?? "");
 
-                    if (
-                        uType === "10" ||
-                        blockTypes.includes(sType) ||
-                        blockUserIds.includes(uId) ||
-                        blockNicks.includes(uNick)
-                    ) {
-                        return false;
-                    }
-                    return true;
+                    // 仅保留真实私聊(sessionType为1且非系统账号type:10)
+                    return sType === "1" && uType !== "10" && !blockTypes.has(sType) && !blockUserIds.has(uId);
                 });
             }
 
-            // 2. 内层消息同步 (message.sync)：清空系统通知与推广消息详情
-            if (api.includes("message.sync")) {
-                Object.keys(obj.data).forEach(key => {
-                    if (Array.isArray(obj.data[key])) {
-                        obj.data[key] = obj.data[key].filter(msg => {
-                            const str = JSON.stringify(msg);
-                            if (
-                                str.includes("\"8544987\"") ||
-                                str.includes("\"3309667601\"") ||
-                                str.includes("\"24035381102\"") ||
-                                str.includes("\"sessionType\":\"3\"") ||
-                                str.includes("\"sessionType\":\"6\"") ||
-                                str.includes("\"sessionType\":\"25\"") ||
-                                str.includes("副业") ||
-                                str.includes("闲鱼币") ||
-                                str.includes("能量") ||
-                                str.includes("优推抵扣")
-                            ) {
-                                return false;
-                            }
-                            return true;
+            // 2. 内层消息详情同步 (message.sync)
+            else if (api.includes("message.sync")) {
+                const adKeywords = /副业|闲鱼币|能量|优推抵扣|降价啦/;
+                for (const key of Object.keys(data)) {
+                    if (Array.isArray(data[key])) {
+                        data[key] = data[key].filter(msg => {
+                            const sType = String(msg?.sessionType ?? msg?.session?.sessionType ?? "");
+                            if (sType && sType !== "1") return false;
+                            return !adKeywords.test(JSON.stringify(msg));
                         });
                     }
-                });
+                }
             }
         }
 
         body = JSON.stringify(obj);
     } catch (e) {
-        console.log("xy_msg_filter error: " + e);
+        console.log(`[闲鱼消息净化] 异常: ${e.message}`);
     }
 }
+
 $done({ body });
