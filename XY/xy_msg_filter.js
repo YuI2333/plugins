@@ -1,8 +1,3 @@
-/*
- * 闲鱼消息净化 (外层列表移除 + 内层详情清空)
- * 匹配接口：mtop.taobao.idlemessage.(session|message).sync
- */
-
 let body = $response.body;
 if (body) {
     try {
@@ -10,7 +5,7 @@ if (body) {
         const api = String(obj.api || "");
 
         if (obj.data) {
-            // 1. 处理外层消息页列表 (mtop.taobao.idlemessage.session.sync)
+            // 1. 外层消息列表 (session.sync)：彻底剔除通知消息(3)、互动消息(6)、闲鱼精选(25)
             if (api.includes("session.sync") && Array.isArray(obj.data.sessions)) {
                 const blockTypes = ["3", "6", "25"];
                 const blockUserIds = ["100", "200", "1500"];
@@ -26,7 +21,6 @@ if (body) {
                     const uId = String(uInfo.userId || s.targetId || "");
                     const uNick = String(uInfo.nick || "");
 
-                    // 只要命中官方消息特征，整条直接从列表剔除，不留空壳
                     if (
                         uType === "10" ||
                         blockTypes.includes(sType) ||
@@ -39,14 +33,12 @@ if (body) {
                 });
             }
 
-            // 2. 处理内层详情页消息同步 (mtop.taobao.idlemessage.message.sync)
+            // 2. 内层消息同步 (message.sync)：清空系统通知与推广消息详情
             if (api.includes("message.sync")) {
-                // 遍历 data 下所有数组字段（如 messages / sessionMessages / list），过滤或清空系统通知与互动消息
                 Object.keys(obj.data).forEach(key => {
                     if (Array.isArray(obj.data[key])) {
                         obj.data[key] = obj.data[key].filter(msg => {
                             const str = JSON.stringify(msg);
-                            // 剔除归属于通知消息(sessionType:3 / id:8544987)、互动消息(sessionType:6 / id:3309667601)、闲鱼精选(25)的内层消息卡片
                             if (
                                 str.includes("\"8544987\"") ||
                                 str.includes("\"3309667601\"") ||
