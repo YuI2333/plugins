@@ -1,11 +1,9 @@
 #!name=闲鱼消息净化
-#!desc=移除闲鱼消息列表中的通知消息、互动消息、闲鱼精选及内层通知内容。
-#!author=YuI2333
-#!system=iOS
+#!desc=移除闲鱼消息列表及内层通知中的无用广告。
 #!date=2026.10.26
 
 [Script]
-http-response ^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemessage\.(session|message)\.sync requires-body=true, timeout=10, script-path=xy_msg_filter.js, tag=闲鱼消息净化
+http-response ^https?:\/\/acs\.m\.goofish\.com\/gw\/mtop\.taobao\.idlemessage\.(session|message)\.sync requires-body=true, timeout=10, script-path=https://raw.githubusercontent.com/YuI2333/plugins/refs/heads/main/XY/xy_msg_filter.js, tag=闲鱼消息净化
 
 [MITM]
 hostname = acs.m.goofish.com
