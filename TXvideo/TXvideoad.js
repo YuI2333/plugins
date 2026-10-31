@@ -168,7 +168,7 @@
       return v;
     }
     function dec(h) {
-      while (bc <= 24 && ip < slen) {
+      while (bc < 16 && ip < slen) {
         bb |= src[ip++] << bc;
         bc += 8;
       }
@@ -200,6 +200,7 @@
     for (;;) {
       const last = bits(1), type = bits(2);
       if (type === 0) {
+        ip -= bc >> 3;
         bb = 0; bc = 0;
         const n = src[ip] | (src[ip + 1] << 8);
         ip += 4;
@@ -260,6 +261,7 @@
       } else throw new Error("inflate type");
       if (last) break;
     }
+    ip -= bc >> 3;
     return { data: out.subarray(0, op), end: ip };
   }
 
@@ -463,15 +465,12 @@
       const nb = ALL_MARKERS[i];
       for (let p = s; (p = find(b, nb, p, e)) >= 0; p += nb.length) ALL.push(p);
     }
-    const pcArr = [];
-    for (let p = s; (p = find(b, PC_PAGE, p, e)) >= 0; p += PC_PAGE.length) pcArr.push(p);
-    MARK.pc = pcArr;
     if (ALL.length > 1) ALL.sort((x, y) => x - y);
   }
 
   function inRange(arr, s, e) {
     let lo = 0, hi = arr.length;
-    while (lo < hi) { const mid = (lo + hi) >>> 1; if (arr[mid] < s) lo = mid + 1; else hi = mid; }
+    while (lo < hi) { const mid = (lo + hi) >> 1; if (arr[mid] < s) lo = mid + 1; else hi = mid; }
     return lo < arr.length && arr[lo] < e;
   }
   function has(m, s, e) { return inRange(m ? MARK[m] || [] : ALL, s, e); }
@@ -614,7 +613,7 @@
   }
 
   function transform(b, s, e) {
-    const hasPc = has("pc", s, e);
+    const hasPc = find(b, PC_PAGE, s, e) >= 0;
     if (!ALL.length && !hasPc) return null;
     const top = parse(b, s, e);
     if (!top) return null;
@@ -634,7 +633,7 @@
       }
     }
     if (hasPc) {
-      const f5 = top.find(x => x.f === 5 && x.w === 2 && has("pc", x.vs, x.e));
+      const f5 = top.find(x => x.f === 5 && x.w === 2 && find(b, PC_PAGE, x.vs, x.e) >= 0);
       if (f5) {
         let edits = null;
         for (const x of top) if (x.w === 2 && x !== f5 && find(b, AD_FEED, x.vs, x.e) >= 0) {
@@ -974,15 +973,7 @@
       return;
     }
     if (typeof $loon !== "undefined" || (msg && msg.body instanceof Uint8Array)) {
-      if (msg && msg.headers) {
-        const h = Object.assign({}, msg.headers);
-        for (const k of Object.keys(h)) {
-          if (k.toLowerCase() === "content-length") delete h[k];
-        }
-        $done({ headers: h, body: u8 });
-      } else {
-        $done({ body: u8 });
-      }
+      $done({ body: u8 });
     } else {
       $done({ bodyBytes: toBuf(u8) });
     }
