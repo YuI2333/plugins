@@ -1,106 +1,73 @@
 (() => {
+  const TAB_DROP_KEYS = ["smallvideo_entrance", "goods_entrance"];
+  const TAB_DROP_TITLES = ["短剧", "好物"];
   const TAB_CUT_WHITELIST = "0;2;4";
+  const AD_ANY = ["AdResponseInfo", "InnerAdPromotionEventList", "InnerAdCommonPromotionEventActivityList", "LoadingConfig", "PreloadResourceInfo", "AdFeedInfo"];
+  const DROP_MODULES = ["user_center_more_function"];
+  const AD_MODULE_IDS = ["outerPaster"];
+  const FEED_MODULE_TAGS = ["waterfall_feeds_module_mergeid"];
+  const MARKERS = ["AdFeedInfo", "AdResponseInfo", "InnerAd", "LoadingConfig", "PreloadResourceInfo", "GetTabListRsp", "_ad", "teenager_popup_ctrl"].concat(DROP_MODULES);
+  const BLOCK_FUNCS = [
+    "/trpc.business_splash.ad_ssp_splash.splashService/GetSplashPreload",
+    "/trpc.business_splash.ad_ssp_splash.splashService/GetSplashRealtimePoll",
+    "/trpc.business_inside_video.ad_ssp_time_point.push_ad_point/GetPushAd",
+    "/trpc.business_inside_video.ad_ssp_time_point.push_ad_point/GetPushAdPoint",
+    "/trpc.business_inside_video.ad_ssp_widget.Widget/GetSpeedPanelAd",
+    "/trpc.business_feeds.video_ad_ssp_feeds.ServerAdFeedsVideo/GetSlotAdData",
+    "/trpc.business_feeds.video_ad_ssp_feeds.ServerAdFeedsVideo/GetSearchAdData",
+    "/trpc.business_feeds.video_ad_ssp_feeds.Independent/GetAds",
+    "/trpc.business_feeds.video_ad_ssp_feeds.Independent/GetUnifiedRefreshAds",
+    "/trpc.vipcontent.promotional_slot.PromotionalSlot/InPlayTouchpoints",
+    "/trpc.vip_ad_promotion.promotion.PromotionHub/GetPromotionHub",
+    "/trpc.video_pay_ffgn.vipcenter.VCUpgradeDialogService/getUpgradeDialogData",
+    "/trpc.activity.memberExperience.ActivityTcp/getHomeGrowPopupUrl",
+    "/trpc.reward_ad_ssp.reward_judgment.pendant/GetRewardPendant",
+    "/trpc.business_feeds.video_ad_ssp_feeds.ServerAdFeedsVideo/GetPersonalCenterAdData",
+    "/trpc.business_feeds.video_ad_ssp_feeds.ServerAdFeedsVideo/GetDownloadAdData"
+  ];
   const JCE_TEEN_CONFIG = 89738;
   const JCE_PLAY_TIPS = 126577;
   const JCE_ROLL_ADS = [129278, 130273];
   const JCE_PAUSE_AD = 129196;
-  const SIMPLE_KEY = "simple_mode_config";
   const DROP = {};
 
-  const RE_MOD_ID = /\.\d+\.\d+$/;
-  const RE_AD_TAG = /^[a-z0-9_]+$/;
-  const RE_AD_FIX = /(^ad_|_ad_|_ad$)/;
-
-  let TE = null, TD = null;
-  let FIXED_L = null, FIXED_D = null, CRC = null;
-  let BLOCK_FUNCS = null;
-  let TRPC_READY = false, TYPE = null, KEY_MARKERS = null, ALL_MARKERS = null, PC_PAGE = null, AD_FEED = null;
-  let AD_ANY = null, DROP_MODULES_SET = null, AD_MODULE_IDS = null, FEED_MODULE_TAGS = null, TAB_DROP_KEYS = null, TAB_DROP_TITLES = null;
-  let LIVEMSG_BYTES = null, GZ_MAGIC = null;
-  let AB_PATCH = null, AB_NEEDLES = null;
-
   function utf8(s) {
-    if (!TE && typeof TextEncoder !== "undefined") TE = new TextEncoder();
-    if (TE) return TE.encode(s);
-    const a = [];
-    for (let i = 0; i < s.length; i++) {
-      let c = s.charCodeAt(i);
-      if (c < 0x80) a.push(c);
-      else if (c < 0x800) a.push(0xc0 | (c >> 6), 0x80 | (c & 0x3f));
-      else if (c >= 0xd800 && c <= 0xdbff && i + 1 < s.length) {
-        c = 0x10000 + (((c & 0x3ff) << 10) | (s.charCodeAt(++i) & 0x3ff));
-        a.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 0x3f), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
-      } else a.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 0x3f), 0x80 | (c & 0x3f));
+    const e = encodeURIComponent(s), a = [];
+    for (let i = 0; i < e.length; i++) {
+      if (e[i] === "%") { a.push(parseInt(e.substr(i + 1, 2), 16)); i += 2; }
+      else a.push(e.charCodeAt(i));
     }
     return new Uint8Array(a);
   }
-
   function text(b, s, e) {
-    if (!TD && typeof TextDecoder !== "undefined") TD = new TextDecoder("utf-8", { fatal: true });
-    if (TD) {
-      try { return TD.decode(b.subarray(s, e)); } catch (x) { return null; }
-    }
-    let out = "", i = s;
-    while (i < e) {
-      const c = b[i++];
-      if (c < 0x80) out += String.fromCharCode(c);
-      else if ((c >> 5) === 0x06) {
-        if (i >= e) return null;
-        out += String.fromCharCode(((c & 0x1f) << 6) | (b[i++] & 0x3f));
-      } else if ((c >> 4) === 0x0e) {
-        if (i + 1 >= e) return null;
-        out += String.fromCharCode(((c & 0x0f) << 12) | ((b[i++] & 0x3f) << 6) | (b[i++] & 0x3f));
-      } else if ((c >> 3) === 0x1e) {
-        if (i + 2 >= e) return null;
-        const u = (((c & 0x07) << 18) | ((b[i++] & 0x3f) << 12) | ((b[i++] & 0x3f) << 6) | (b[i++] & 0x3f)) - 0x10000;
-        out += String.fromCharCode(0xd800 + (u >> 10), 0xdc00 + (u & 0x3ff));
-      } else return null;
-    }
-    return out;
+    let r = "";
+    for (let i = s; i < e; i++) r += "%" + (b[i] < 16 ? "0" : "") + b[i].toString(16);
+    try { return decodeURIComponent(r); } catch (x) { return null; }
   }
-
   function ascii(b, s, e) {
     let r = "";
-    for (let i = s; i < e; i++) {
-      const c = b[i];
-      if (c < 32 || c > 126) return null;
-      r += String.fromCharCode(c);
-    }
+    for (let i = s; i < e; i++) { if (b[i] < 32 || b[i] > 126) return null; r += String.fromCharCode(b[i]); }
     return r;
   }
-
   function concat(parts) {
     let n = 0;
-    for (let i = 0; i < parts.length; i++) n += parts[i].length;
+    for (const p of parts) n += p.length;
     const o = new Uint8Array(n);
     let k = 0;
-    for (let i = 0; i < parts.length; i++) {
-      const p = parts[i];
-      o.set(p, k);
-      k += p.length;
-    }
+    for (const p of parts) { o.set(p, k); k += p.length; }
     return o;
   }
-
   function find(h, n, s, e) {
-    const m = n.length;
-    if (!m) return s;
-    const lim = e - m;
-    if (s > lim) return -1;
-    const f = n[0];
-    let i = s;
-    outer: while ((i = h.indexOf(f, i)) >= 0 && i <= lim) {
-      for (let j = 1; j < m; j++) {
-        if (h[i + j] !== n[j]) { i++; continue outer; }
-      }
+    const f = n[0], m = n.length;
+    outer: for (let i = s; i <= e - m; i++) {
+      if (h[i] !== f) continue;
+      for (let j = 1; j < m; j++) if (h[i + j] !== n[j]) continue outer;
       return i;
     }
     return -1;
   }
-
   function u32(b, p) { return ((b[p] << 24) >>> 0) + (b[p + 1] << 16) + (b[p + 2] << 8) + b[p + 3]; }
   function put32(b, p, v) { b[p] = (v >>> 24) & 255; b[p + 1] = (v >>> 16) & 255; b[p + 2] = (v >>> 8) & 255; b[p + 3] = v & 255; }
-
   function toU8(x) {
     if (!x) return null;
     if (x instanceof Uint8Array) return x;
@@ -111,43 +78,22 @@
     if (tag === "[object ArrayBuffer]") return new Uint8Array(x);
     return null;
   }
-  function toBuf(u) { return u.buffer.slice(u.byteOffset, u.byteOffset + u.byteLength); }
 
   const LB = [3, 4, 5, 6, 7, 8, 9, 10, 11, 13, 15, 17, 19, 23, 27, 31, 35, 43, 51, 59, 67, 83, 99, 115, 131, 163, 195, 227, 258];
   const LE = [0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 2, 2, 2, 2, 3, 3, 3, 3, 4, 4, 4, 4, 5, 5, 5, 5, 0];
   const DB = [1, 2, 3, 4, 5, 7, 9, 13, 17, 25, 33, 49, 65, 97, 129, 193, 257, 385, 513, 769, 1025, 1537, 2049, 3073, 4097, 6145, 8193, 12289, 16385, 24577];
   const DE = [0, 0, 0, 0, 1, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 7, 8, 8, 9, 9, 10, 10, 11, 11, 12, 12, 13, 13];
   const CLO = [16, 17, 18, 0, 8, 7, 9, 6, 10, 5, 11, 4, 12, 3, 13, 2, 14, 1, 15];
-
   function huff(len, n) {
-    const count = new Uint16Array(16), offs = new Uint16Array(16), sym = new Uint16Array(n), fast = new Uint16Array(512);
+    const count = new Uint16Array(16), offs = new Uint16Array(16), sym = new Uint16Array(n);
     for (let i = 0; i < n; i++) count[len[i]]++;
     count[0] = 0;
-    let code = 0;
-    const nextCode = new Uint16Array(16);
-    for (let i = 1; i < 16; i++) {
-      offs[i] = offs[i - 1] + count[i - 1];
-      code = (code + count[i - 1]) << 1;
-      nextCode[i] = code;
-    }
-    for (let i = 0; i < n; i++) {
-      const l = len[i];
-      if (!l) continue;
-      sym[offs[l]++] = i;
-      if (l <= 9) {
-        let c = nextCode[l]++, rev = 0;
-        for (let b = 0; b < l; b++) { rev = (rev << 1) | (c & 1); c >>= 1; }
-        const entry = (l << 9) | i;
-        for (let fill = rev; fill < 512; fill += (1 << l)) fast[fill] = entry;
-      }
-    }
-    return { count: count, sym: sym, fast: fast };
+    for (let i = 1; i < 16; i++) offs[i] = offs[i - 1] + count[i - 1];
+    for (let i = 0; i < n; i++) if (len[i]) sym[offs[len[i]]++] = i;
+    return { count: count, sym: sym };
   }
-
-  function inflate(src, start, initCap) {
-    const slen = src.length;
-    let ip = start, bb = 0, bc = 0, op = 0;
-    let out = new Uint8Array(initCap || (slen * 4 + 4096));
+  function inflate(src, start) {
+    let ip = start, bb = 0, bc = 0, op = 0, out = new Uint8Array(src.length * 4 + 4096);
     function room(n) {
       if (op + n <= out.length) return;
       let l = out.length * 2;
@@ -157,66 +103,41 @@
       out = o;
     }
     function bits(n) {
-      while (bc < n) {
-        if (ip >= slen) throw new Error("inflate eof");
-        bb |= src[ip++] << bc;
-        bc += 8;
-      }
+      while (bc < n) { if (ip >= src.length) throw new Error("inflate eof"); bb |= src[ip++] << bc; bc += 8; }
       const v = bb & ((1 << n) - 1);
-      bb >>>= n;
-      bc -= n;
+      bb >>>= n; bc -= n;
       return v;
     }
     function dec(h) {
-      while (bc < 16 && ip < slen) {
-        bb |= src[ip++] << bc;
-        bc += 8;
-      }
-      const e = h.fast[bb & 511];
-      if (e) {
-        const l = e >> 9;
-        if (bc >= l) {
-          bb >>>= l;
-          bc -= l;
-          return e & 511;
-        }
-      }
       let code = 0, first = 0, index = 0;
       for (let l = 1; l < 16; l++) {
-        if (!bc) {
-          if (ip >= slen) throw new Error("inflate eof");
-          bb = src[ip++];
-          bc = 8;
-        }
-        code |= bb & 1;
-        bb >>>= 1;
-        bc--;
+        code |= bits(1);
         const c = h.count[l];
         if (code - c < first) return h.sym[index + (code - first)];
         index += c; first += c; first <<= 1; code <<= 1;
       }
       throw new Error("inflate code");
     }
+    let fl = null, fd = null;
     for (;;) {
       const last = bits(1), type = bits(2);
       if (type === 0) {
-        ip -= bc >> 3;
         bb = 0; bc = 0;
         const n = src[ip] | (src[ip + 1] << 8);
         ip += 4;
-        if (ip + n > slen) throw new Error("inflate stored");
+        if (ip + n > src.length) throw new Error("inflate stored");
         room(n); out.set(src.subarray(ip, ip + n), op); op += n; ip += n;
       } else if (type === 1 || type === 2) {
         let hl, hd;
         if (type === 1) {
-          if (!FIXED_L) {
+          if (!fl) {
             const l = new Uint8Array(288);
             for (let i = 0; i < 288; i++) l[i] = i < 144 ? 8 : i < 256 ? 9 : i < 280 ? 7 : 8;
-            FIXED_L = huff(l, 288);
+            fl = huff(l, 288);
             const d = new Uint8Array(30).fill(5);
-            FIXED_D = huff(d, 30);
+            fd = huff(d, 30);
           }
-          hl = FIXED_L; hd = FIXED_D;
+          hl = fl; hd = fd;
         } else {
           const nl = bits(5) + 257, nd = bits(5) + 1, nc = bits(4) + 4;
           const cl = new Uint8Array(19);
@@ -238,51 +159,39 @@
         }
         for (;;) {
           let s = dec(hl);
-          if (s < 256) {
-            if (op >= out.length) room(1);
-            out[op++] = s;
-          } else if (s === 256) break;
+          if (s < 256) { room(1); out[op++] = s; }
+          else if (s === 256) break;
           else {
             s -= 257;
             if (s >= 29) throw new Error("inflate len");
-            const len = LB[s] + (LE[s] ? bits(LE[s]) : 0), ds = dec(hd);
+            const len = LB[s] + bits(LE[s]), ds = dec(hd);
             if (ds >= 30) throw new Error("inflate dist");
-            const dist = DB[ds] + (DE[ds] ? bits(DE[ds]) : 0);
+            const dist = DB[ds] + bits(DE[ds]);
             if (dist > op) throw new Error("inflate back");
             room(len);
-            if (dist >= len) {
-              out.copyWithin(op, op - dist, op - dist + len);
-              op += len;
-            } else {
-              for (let i = 0; i < len; i++, op++) out[op] = out[op - dist];
-            }
+            for (let i = 0; i < len; i++, op++) out[op] = out[op - dist];
           }
         }
       } else throw new Error("inflate type");
       if (last) break;
     }
-    ip -= bc >> 3;
     return { data: out.subarray(0, op), end: ip };
   }
-
   function gunzip(b) {
-    const n = b.length;
-    if (n < 18 || b[0] !== 0x1f || b[1] !== 0x8b || b[2] !== 8) throw new Error("not gzip");
+    if (b[0] !== 0x1f || b[1] !== 0x8b || b[2] !== 8) throw new Error("not gzip");
     const f = b[3];
     let p = 10;
     if (f & 4) p += 2 + (b[p] | (b[p + 1] << 8));
     if (f & 8) { while (b[p]) p++; p++; }
     if (f & 16) { while (b[p]) p++; p++; }
     if (f & 2) p += 2;
-    const hint = (b[n - 4] | (b[n - 3] << 8) | (b[n - 2] << 16) | (b[n - 1] << 24)) >>> 0;
-    const cap = hint > 0 && hint <= 16777216 ? hint : (n * 4 + 4096);
-    const r = inflate(b, p, cap);
-    if (r.end + 8 > n) throw new Error("gzip trailer");
+    const r = inflate(b, p);
+    if (r.end + 8 > b.length) throw new Error("gzip trailer");
     const isize = (b[r.end + 4] | (b[r.end + 5] << 8) | (b[r.end + 6] << 16) | (b[r.end + 7] << 24)) >>> 0;
     if (isize !== (r.data.length >>> 0)) throw new Error("gzip size");
     return r.data;
   }
-
+  let CRC = null;
   function crc32(b) {
     if (!CRC) {
       CRC = new Uint32Array(256);
@@ -292,7 +201,6 @@
     for (let i = 0; i < b.length; i++) c = CRC[(c ^ b[i]) & 255] ^ (c >>> 8);
     return (c ^ 0xffffffff) >>> 0;
   }
-
   function gzip(d) {
     const blocks = Math.max(1, Math.ceil(d.length / 65535));
     const o = new Uint8Array(10 + blocks * 5 + d.length + 8);
@@ -312,10 +220,7 @@
 
   let VP = 0;
   function rv(b, p, e) {
-    if (p >= e) return -1;
-    let c = b[p++];
-    if (c < 128) { VP = p; return c; }
-    let x = c & 127, m = 128;
+    let x = 0, m = 1, c;
     do {
       if (p >= e || m > 72057594037927936) return -1;
       c = b[p++];
@@ -325,28 +230,13 @@
     VP = p;
     return x;
   }
-
   function ev(v) {
     const a = [];
     while (v >= 128) { a.push((v % 128) | 128); v = Math.floor(v / 128); }
     a.push(v);
     return new Uint8Array(a);
   }
-
-  function lenField(f, d) {
-    let k = f * 8 + 2, l = d.length, kp = 0, lp = 0;
-    const kb = [], lb = [];
-    while (k >= 128) { kb[kp++] = (k & 127) | 128; k = Math.floor(k / 128); }
-    kb[kp++] = k;
-    while (l >= 128) { lb[lp++] = (l & 127) | 128; l = Math.floor(l / 128); }
-    lb[lp++] = l;
-    const o = new Uint8Array(kp + lp + d.length);
-    for (let i = 0; i < kp; i++) o[i] = kb[i];
-    for (let i = 0; i < lp; i++) o[kp + i] = lb[i];
-    o.set(d, kp + lp);
-    return o;
-  }
-
+  function lenField(f, d) { return concat([ev(f * 8 + 2), ev(d.length), d]); }
   function parse(b, s, e) {
     const out = [];
     let p = s;
@@ -354,7 +244,7 @@
       const ts = p, k = rv(b, p, e);
       if (k < 8) return null;
       p = VP;
-      const f = k <= 0xffffffff ? (k >>> 3) : Math.floor(k / 8), w = k & 7;
+      const f = Math.floor(k / 8), w = k % 8;
       if (w === 0) {
         const v = rv(b, p, e);
         if (v < 0) return null;
@@ -363,111 +253,60 @@
       } else if (w === 1 || w === 5) {
         const n = w === 1 ? 8 : 4;
         if (p + n > e) return null;
-        out.push({ f: f, w: w, s: ts, vs: p, e: p + n, v: 0 });
+        out.push({ f: f, w: w, s: ts, vs: p, e: p + n });
         p += n;
       } else if (w === 2) {
         const l = rv(b, p, e);
         if (l < 0) return null;
         p = VP;
         if (p + l > e) return null;
-        out.push({ f: f, w: w, s: ts, vs: p, e: p + l, v: 0 });
+        out.push({ f: f, w: w, s: ts, vs: p, e: p + l });
         p += l;
       } else return null;
     }
     return out;
   }
-
   function rebuild(b, s, e, fields, edits) {
-    if (!edits || !edits.size) return null;
     const parts = [];
-    let last = s;
-    for (let i = 0; i < fields.length; i++) {
-      const x = fields[i];
+    let last = s, changed = false;
+    for (const x of fields) {
       if (!edits.has(x)) continue;
       const r = edits.get(x);
-      if (x.s > last) parts.push(b.subarray(last, x.s));
+      parts.push(b.subarray(last, x.s));
       if (r !== DROP) parts.push(r);
       last = x.e;
+      changed = true;
     }
-    if (e > last) parts.push(b.subarray(last, e));
+    if (!changed) return null;
+    parts.push(b.subarray(last, e));
     return concat(parts);
   }
 
-  function initTrpcResp() {
-    if (TRPC_READY) return;
-    TYPE = utf8("type.googleapis.com/");
-    PC_PAGE = utf8("personal_center_page");
-    AD_FEED = utf8("pb.AdFeed");
-    KEY_MARKERS = ["AdFeedInfo", "GetTabListRsp", "teenager_popup_ctrl"].map(m => [m, utf8(m)]);
-    ALL_MARKERS = ["AdResponseInfo", "InnerAd", "LoadingConfig", "PreloadResourceInfo", "_ad", "user_center_more_function"].map(m => utf8(m));
-    AD_ANY = new Set(["AdResponseInfo", "InnerAdPromotionEventList", "InnerAdCommonPromotionEventActivityList", "LoadingConfig", "PreloadResourceInfo", "AdFeedInfo"]);
-    DROP_MODULES_SET = new Set(["user_center_more_function"]);
-    AD_MODULE_IDS = new Set(["outerPaster"]);
-    FEED_MODULE_TAGS = new Set(["waterfall_feeds_module_mergeid"]);
-    TAB_DROP_KEYS = new Set(["smallvideo_entrance", "goods_entrance"]);
-    TAB_DROP_TITLES = new Set(["短剧", "好物"]);
-    TRPC_READY = true;
-  }
-
-  function initTrpcReq() {
-    if (BLOCK_FUNCS) return;
-    BLOCK_FUNCS = new Set([
-      "/trpc.business_splash.ad_ssp_splash.splashService/GetSplashPreload",
-      "/trpc.business_splash.ad_ssp_splash.splashService/GetSplashRealtimePoll",
-      "/trpc.business_inside_video.ad_ssp_time_point.push_ad_point/GetPushAd",
-      "/trpc.business_inside_video.ad_ssp_time_point.push_ad_point/GetPushAdPoint",
-      "/trpc.business_inside_video.ad_ssp_widget.Widget/GetSpeedPanelAd",
-      "/trpc.business_feeds.video_ad_ssp_feeds.ServerAdFeedsVideo/GetSlotAdData",
-      "/trpc.business_feeds.video_ad_ssp_feeds.ServerAdFeedsVideo/GetSearchAdData",
-      "/trpc.business_feeds.video_ad_ssp_feeds.ServerAdFeedsVideo/GetDownloadAdData",
-      "/trpc.business_feeds.video_ad_ssp_feeds.Independent/GetAds",
-      "/trpc.business_feeds.video_ad_ssp_feeds.Independent/GetUnifiedRefreshAds",
-      "/trpc.vipcontent.promotional_slot.PromotionalSlot/InPlayTouchpoints",
-      "/trpc.vip_ad_promotion.promotion.PromotionHub/GetPromotionHub",
-      "/trpc.video_pay_ffgn.vipcenter.VCUpgradeDialogService/getUpgradeDialogData",
-      "/trpc.activity.memberExperience.ActivityTcp/getHomeGrowPopupUrl",
-      "/trpc.reward_ad_ssp.reward_judgment.pendant/GetRewardPendant",
-      "/trpc.business_feeds.video_ad_ssp_feeds.ServerAdFeedsVideo/GetPersonalCenterAdData"
-    ]);
-  }
-
+  const TYPE = utf8("type.googleapis.com/");
   let ANYV = 0;
   function anyName(b, s, e) {
     if (b[s] !== 0x0a) return null;
     const l = rv(b, s + 1, e);
-    const p = VP, end = p + l;
-    if (l < 21 || end > e || b[p] !== 0x74 || b[p + 19] !== 0x2f) return null;
-    for (let i = 1; i < 19; i++) if (b[p + i] !== TYPE[i]) return null;
-    let cut = p + 19;
-    for (let i = p + 20; i < end; i++) {
-      const c = b[i];
-      if (c < 32 || c > 126) return null;
-      if (c === 46 || c === 47) cut = i;
-    }
-    ANYV = end;
-    let r = "";
-    for (let i = cut + 1; i < end; i++) r += String.fromCharCode(b[i]);
-    return r;
+    if (l < 21 || VP + l > e) return null;
+    const p = VP;
+    if (find(b, TYPE, p, p + TYPE.length) !== p) return null;
+    const t = ascii(b, p, p + l);
+    if (!t) return null;
+    ANYV = p + l;
+    return t.slice(Math.max(t.lastIndexOf("."), t.lastIndexOf("/")) + 1);
   }
 
   let MARK = {}, ALL = [];
   function indexMarkers(b, s, e) {
     MARK = {}; ALL = [];
-    for (let i = 0; i < KEY_MARKERS.length; i++) {
-      const m = KEY_MARKERS[i][0], nb = KEY_MARKERS[i][1], arr = [];
-      for (let p = s; (p = find(b, nb, p, e)) >= 0; p += nb.length) {
-        arr.push(p);
-        ALL.push(p);
-      }
+    for (const m of MARKERS) {
+      const nb = utf8(m), arr = [];
+      for (let p = s; (p = find(b, nb, p, e)) >= 0; p += nb.length) arr.push(p);
       MARK[m] = arr;
+      ALL = ALL.concat(arr);
     }
-    for (let i = 0; i < ALL_MARKERS.length; i++) {
-      const nb = ALL_MARKERS[i];
-      for (let p = s; (p = find(b, nb, p, e)) >= 0; p += nb.length) ALL.push(p);
-    }
-    if (ALL.length > 1) ALL.sort((x, y) => x - y);
+    ALL.sort((x, y) => x - y);
   }
-
   function inRange(arr, s, e) {
     let lo = 0, hi = arr.length;
     while (lo < hi) { const mid = (lo + hi) >> 1; if (arr[mid] < s) lo = mid + 1; else hi = mid; }
@@ -477,23 +316,14 @@
 
   function kidsOf(b, recs, f) {
     const r = [];
-    for (let i = 0; i < recs.length; i++) {
-      const x = recs[i];
-      if (x.f === f && x.w === 2) {
-        const k = parse(b, x.vs, x.e);
-        if (k) r.push(k);
-      }
-    }
+    for (const x of recs) if (x.f === f && x.w === 2) { const k = parse(b, x.vs, x.e); if (k) r.push(k); }
     return r;
   }
   function blocksAt(b, kids) {
     let level = [kids];
     for (const f of [2, 5, 1]) {
       const next = [];
-      for (let i = 0; i < level.length; i++) {
-        const c = kidsOf(b, level[i], f);
-        for (let j = 0; j < c.length; j++) next.push(c[j]);
-      }
+      for (const k of level) for (const c of kidsOf(b, k, f)) next.push(c);
       level = next;
       if (!level.length) break;
     }
@@ -511,39 +341,23 @@
     return !!w && w.some(z => z.f === 2 && z.w === 2 && anyName(b, z.vs, z.e));
   }
   function isAdElement(b, x, kids) {
-    let f1 = null, f2 = null, f6 = null;
-    for (let i = 0; i < kids.length; i++) {
-      const k = kids[i];
-      if (k.w !== 2) continue;
-      const f = k.f;
-      if (f === 1) {
-        if (!f1) f1 = k;
-        const t = anyName(b, k.vs, k.e);
-        if (t && AD_ANY.has(t)) return true;
-      } else if (f === 2) {
-        if (!f2) f2 = k;
-        const t = anyName(b, k.vs, k.e);
-        if (t && AD_ANY.has(t)) return true;
-      } else if (f === 10) {
-        if (has("AdFeedInfo", k.vs, k.e) && wrapsAny(b, k)) return true;
-        const t = anyName(b, k.vs, k.e);
-        if (t && AD_ANY.has(t)) return true;
-      } else if (f === 6) {
-        if (!f6) f6 = k;
-      }
+    for (const k of kids) {
+      if (k.w !== 2 || (k.f !== 1 && k.f !== 2 && k.f !== 10)) continue;
+      if (k.f === 10 && has("AdFeedInfo", k.vs, k.e) && wrapsAny(b, k)) return true;
+      const t = anyName(b, k.vs, k.e);
+      if (t && AD_ANY.indexOf(t) >= 0) return true;
     }
+    const f1 = kids.find(k => k.f === 1 && k.w === 2), f2 = kids.find(k => k.f === 2 && k.w === 2);
     if (f1 && f2 && f2.e - f2.vs > 3 && f2.e - f2.vs < 64) {
       const t = ascii(b, f2.vs, f2.e), id = ascii(b, f1.vs, f1.e);
-      if (t && id && DROP_MODULES_SET.has(t) && RE_MOD_ID.test(id)) return true;
-      if (t && id !== null && RE_AD_TAG.test(t) && RE_AD_FIX.test(t) && (id === "" || RE_MOD_ID.test(id))) return true;
+      if (t && id && DROP_MODULES.indexOf(t) >= 0 && /\.\d+\.\d+$/.test(id)) return true;
+      if (t && id !== null && /^[a-z0-9_]+$/.test(t) && /(^ad_|_ad_|_ad$)/.test(t) && (id === "" || /\.\d+\.\d+$/.test(id))) return true;
     }
-    if (has("AdFeedInfo", x.vs, x.e)) {
-      if ((!f1 || f1.e === f1.vs || AD_MODULE_IDS.has(ascii(b, f1.vs, f1.e))) && adAtPath(b, kids)) return true;
-      if (f6 && FEED_MODULE_TAGS.has(ascii(b, f6.vs, f6.e)) && adOnlyAtPath(b, kids)) return true;
-    }
+    if ((!f1 || f1.e === f1.vs || AD_MODULE_IDS.indexOf(ascii(b, f1.vs, f1.e)) >= 0) && has("AdFeedInfo", x.vs, x.e) && adAtPath(b, kids)) return true;
+    const f6 = kids.find(k => k.f === 6 && k.w === 2);
+    if (f6 && FEED_MODULE_TAGS.indexOf(ascii(b, f6.vs, f6.e)) >= 0 && has("AdFeedInfo", x.vs, x.e) && adOnlyAtPath(b, kids)) return true;
     return false;
   }
-
   function tabFix(b, x) {
     if (anyName(b, x.vs, x.e) !== "GetTabListRsp") return null;
     const rest = parse(b, ANYV, x.e);
@@ -563,7 +377,7 @@
           if (k1) key = ascii(b, k1.vs, k1.e) || "";
         }
       }
-      if (TAB_DROP_KEYS.has(key) || TAB_DROP_TITLES.has(title)) drop.add(it);
+      if (TAB_DROP_KEYS.indexOf(key) >= 0 || TAB_DROP_TITLES.indexOf(title) >= 0) drop.add(it);
     }
     if (!drop.size) return null;
     const edits = new Map();
@@ -579,42 +393,27 @@
     const nv = rebuild(b, v.vs, v.e, vf, edits);
     return lenField(x.f, concat([b.subarray(x.vs, v.s), lenField(2, nv), b.subarray(v.e, x.e)]));
   }
-
-  function clean(b, s, e, depth, fs) {
+  function clean(b, s, e, depth) {
     if (depth > 48 || !has(null, s, e)) return null;
-    if (!fs) fs = parse(b, s, e);
+    const fs = parse(b, s, e);
     if (!fs) return null;
-    let edits = null;
-    for (let i = 0; i < fs.length; i++) {
-      const x = fs[i];
+    const edits = new Map();
+    for (const x of fs) {
       if (x.w !== 2 || x.e - x.vs < 2 || !has(null, x.vs, x.e)) continue;
       const kids = parse(b, x.vs, x.e);
       if (!kids || !kids.length) continue;
-      if (isAdElement(b, x, kids)) {
-        if (!edits) edits = new Map();
-        edits.set(x, DROP);
-        continue;
-      }
+      if (isAdElement(b, x, kids)) { edits.set(x, DROP); continue; }
       if (has("GetTabListRsp", x.vs, x.e)) {
         const t = tabFix(b, x);
-        if (t) {
-          if (!edits) edits = new Map();
-          edits.set(x, t);
-          continue;
-        }
+        if (t) { edits.set(x, t); continue; }
       }
-      const r = clean(b, x.vs, x.e, depth + 1, kids);
-      if (r) {
-        if (!edits) edits = new Map();
-        edits.set(x, lenField(x.f, r));
-      }
+      const r = clean(b, x.vs, x.e, depth + 1);
+      if (r) edits.set(x, lenField(x.f, r));
     }
-    return edits ? rebuild(b, s, e, fs, edits) : null;
+    return rebuild(b, s, e, fs, edits);
   }
-
+  const PC_PAGE = utf8("personal_center_page"), AD_FEED = utf8("pb.AdFeed");
   function transform(b, s, e) {
-    const hasPc = find(b, PC_PAGE, s, e) >= 0;
-    if (!ALL.length && !hasPc) return null;
     const top = parse(b, s, e);
     if (!top) return null;
     if (has("teenager_popup_ctrl", s, e)) {
@@ -624,37 +423,28 @@
         return !!v && ascii(b, v.vs, v.e) === "teenager_popup_ctrl";
       });
       if (isCtrl) {
-        let edits = null;
-        for (const x of top) if (x.f === 1) {
-          if (!edits) edits = new Map();
-          edits.set(x, DROP);
-        }
-        return edits ? rebuild(b, s, e, top, edits) : null;
+        const edits = new Map();
+        for (const x of top) if (x.f === 1) edits.set(x, DROP);
+        return rebuild(b, s, e, top, edits);
       }
     }
-    if (hasPc) {
+    if (find(b, PC_PAGE, s, e) >= 0) {
       const f5 = top.find(x => x.f === 5 && x.w === 2 && find(b, PC_PAGE, x.vs, x.e) >= 0);
       if (f5) {
-        let edits = null;
-        for (const x of top) if (x.w === 2 && x !== f5 && find(b, AD_FEED, x.vs, x.e) >= 0) {
-          if (!edits) edits = new Map();
-          edits.set(x, DROP);
-        }
-        if (edits) return rebuild(b, s, e, top, edits);
+        const edits = new Map();
+        for (const x of top) if (x.w === 2 && x !== f5 && find(b, AD_FEED, x.vs, x.e) >= 0) edits.set(x, DROP);
+        if (edits.size) return rebuild(b, s, e, top, edits);
       }
     }
-    return clean(b, s, e, 0, top);
+    return clean(b, s, e, 0);
   }
-
   function trpcFrame(u8) {
     if (u8.length < 16 || u8[0] !== 0x09 || u8[1] !== 0x30) return null;
     const total = u32(u8, 4), hl = (u8[8] << 8) | u8[9];
     if (total !== u8.length || 16 + hl > total) return null;
     return { hs: 16, he: 16 + hl };
   }
-
   function onTrpcResponse(raw) {
-    initTrpcResp();
     let u8 = raw, gz = false;
     if (u8[0] === 0x1f && u8[1] === 0x8b) { u8 = gunzip(u8); gz = true; }
     const fr = trpcFrame(u8);
@@ -666,16 +456,14 @@
     put32(out, 4, out.length);
     return gz ? gzip(out) : out;
   }
-
   function onTrpcRequest(raw) {
-    initTrpcReq();
     let u8 = raw, gz = false;
     if (u8[0] === 0x1f && u8[1] === 0x8b) { u8 = gunzip(u8); gz = true; }
     const fr = trpcFrame(u8);
     if (!fr) return null;
     const hd = parse(u8, fr.hs, fr.he), fn = hd && hd.find(x => x.f === 7 && x.w === 2);
     const func = fn ? ascii(u8, fn.vs, fn.e) : null;
-    if (!func || !BLOCK_FUNCS.has(func)) return null;
+    if (!func || BLOCK_FUNCS.indexOf(func) < 0) return null;
     const nb = utf8(func.slice(func.lastIndexOf("/") + 1)), out = u8.slice();
     for (let p = fr.hs; (p = find(out, nb, p, fr.he)) >= 0; p += nb.length) out[p] = out[p] === 0x58 ? 0x59 : 0x58;
     return gz ? gzip(out) : out;
@@ -690,7 +478,6 @@
     VP = p;
     return [tag, t];
   }
-
   function jInt(b, p) {
     const h = jHead(b, p);
     p = VP;
@@ -704,7 +491,6 @@
     VP = p;
     return v;
   }
-
   function jSkip(b, p, t, e) {
     let q;
     switch (t) {
@@ -743,7 +529,6 @@
     if (q > e) throw new Error("jce overflow");
     return q;
   }
-
   function jFields(b, s, e) {
     const out = [];
     let p = s;
@@ -757,7 +542,6 @@
     if (p !== e) throw new Error("jce tail");
     return out;
   }
-
   function jHeadEnc(tag, t) { return tag < 15 ? [(tag << 4) | t] : [0xf0 | t, tag]; }
   function jIntEnc(tag, v) {
     if (v === 0) return new Uint8Array(jHeadEnc(tag, 12));
@@ -771,42 +555,33 @@
     if (x.t === 7) return ascii(b, x.vs + 4, x.e);
     return null;
   }
-
   function jRebuild(b, s, e, fields, edits) {
-    if (!edits || !edits.size) return null;
     const parts = [];
-    let last = s;
-    for (let i = 0; i < fields.length; i++) {
-      const x = fields[i];
+    let last = s, changed = false;
+    for (const x of fields) {
       if (!edits.has(x)) continue;
-      if (x.s > last) parts.push(b.subarray(last, x.s));
+      parts.push(b.subarray(last, x.s));
       const r = edits.get(x);
       if (r !== DROP) parts.push(r);
       last = x.e;
+      changed = true;
     }
-    if (e > last) parts.push(b.subarray(last, e));
+    if (!changed) return null;
+    parts.push(b.subarray(last, e));
     return concat(parts);
   }
-
   function fixTeenConfig(b, s, e) {
     const fs = jFields(b, s, e);
     const code = fs.find(x => x.tag === 9);
     const sc = code ? jStr(b, code) : null;
     if (!sc || !/^[0-9A-F]{32,}$/.test(sc)) return null;
-    let edits = null;
+    const edits = new Map();
     for (const x of fs) {
-      if (x.tag === 4 && x.t !== 12) {
-        if (!edits) edits = new Map();
-        edits.set(x, jIntEnc(4, 0));
-      }
-      if ((x.tag === 6 || x.tag === 10) && x.t === 10) {
-        if (!edits) edits = new Map();
-        edits.set(x, DROP);
-      }
+      if (x.tag === 4 && x.t !== 12) edits.set(x, jIntEnc(4, 0));
+      if ((x.tag === 6 || x.tag === 10) && x.t === 10) edits.set(x, DROP);
     }
-    return edits ? jRebuild(b, s, e, fs, edits) : null;
+    return jRebuild(b, s, e, fs, edits);
   }
-
   function fixPlayTips(b, s, e) {
     const fs = jFields(b, s, e), m = fs.find(x => x.tag === 1 && x.t === 8);
     if (!m) return null;
@@ -829,18 +604,14 @@
     edits.set(m, enc);
     return jRebuild(b, s, e, fs, edits);
   }
-
   function fixRollAds(b, s, e) {
-    if (!LIVEMSG_BYTES) LIVEMSG_BYTES = utf8("livemsg");
     const fs = jFields(b, s, e), l = fs.find(x => x.tag === 2 && x.t === 9);
-    if (!l || jInt(b, l.vs) <= 0 || find(b, LIVEMSG_BYTES, l.vs, l.e) < 0) return null;
+    if (!l || jInt(b, l.vs) <= 0 || find(b, utf8("livemsg"), l.vs, l.e) < 0) return null;
     const edits = new Map();
     edits.set(l, concat([new Uint8Array(jHeadEnc(2, 9)), jIntEnc(0, 0)]));
     return jRebuild(b, s, e, fs, edits);
   }
-
   function fixPauseAd(b, s, e) {
-    if (!LIVEMSG_BYTES) LIVEMSG_BYTES = utf8("livemsg");
     const fs = jFields(b, s, e), w = fs.find(x => x.tag === 1 && x.t === 10);
     if (!w || b[w.e - 1] !== 0x0b) return null;
     const ws = jFields(b, w.vs, w.e - 1), l = ws.find(x => x.tag === 1 && x.t === 13);
@@ -849,7 +620,7 @@
     const n = jInt(b, VP), ds = VP;
     if (ds + n !== l.e) return null;
     const inner = jFields(b, ds, l.e), list = inner.find(x => x.tag === 0 && x.t === 9);
-    if (!list || jInt(b, list.vs) <= 0 || find(b, LIVEMSG_BYTES, list.vs, list.e) < 0) return null;
+    if (!list || jInt(b, list.vs) <= 0 || find(b, utf8("livemsg"), list.vs, list.e) < 0) return null;
     const le = new Map();
     le.set(l, jSimpleList(1, concat([new Uint8Array(jHeadEnc(0, 9)), jIntEnc(0, 0)])));
     const nw = concat([b.subarray(w.s, w.vs), jRebuild(b, w.vs, w.e - 1, ws, le), new Uint8Array([0x0b])]);
@@ -857,15 +628,13 @@
     edits.set(w, nw);
     return jRebuild(b, s, e, fs, edits);
   }
-
   function onJce(raw) {
     const b = raw, n = b.length;
     if (n < 100 || b[0] !== 0x13 || u32(b, 1) !== n || b[n - 1] !== 0x03) return null;
     const cmd = (b[8] << 16) | (b[9] << 8) | b[10];
     const fix = cmd === JCE_TEEN_CONFIG ? fixTeenConfig : cmd === JCE_PLAY_TIPS ? fixPlayTips : JCE_ROLL_ADS.indexOf(cmd) >= 0 ? fixRollAds : cmd === JCE_PAUSE_AD ? fixPauseAd : null;
     if (!fix) return null;
-    if (!GZ_MAGIC) GZ_MAGIC = new Uint8Array([0x1f, 0x8b, 0x08]);
-    const gz = find(b, GZ_MAGIC, 60, Math.min(n, 140));
+    const gz = find(b, new Uint8Array([0x1f, 0x8b, 0x08]), 60, Math.min(n, 140));
     if (gz < 4) return null;
     const inner = gunzip(b.subarray(gz, n - 1));
     const m = inner.length;
@@ -886,6 +655,7 @@
     return out;
   }
 
+  const SIMPLE_KEY = "simple_mode_config";
   function patchSimpleMode(js) {
     let o;
     try { o = JSON.parse(js); } catch (x) { return null; }
@@ -926,17 +696,15 @@
     o.enableHdns = false;
     return JSON.stringify(o);
   }
-
+  const AB_PATCH = { simple_mode_config: patchSimpleMode, ios_nx_netframework_compatible: patchNoQuic, ios_nx_netframework_compatible_bbtf: patchNoQuic, network_resolve_config: patchNoPreResolve };
+  const AB_NEEDLES = [utf8(SIMPLE_KEY), utf8("ios_nx_netframework_compatible"), utf8("network_resolve_config")];
   function onAbConfig(raw) {
-    if (!AB_PATCH) {
-      AB_PATCH = { simple_mode_config: patchSimpleMode, ios_nx_netframework_compatible: patchNoQuic, ios_nx_netframework_compatible_bbtf: patchNoQuic, network_resolve_config: patchNoPreResolve };
-      AB_NEEDLES = [utf8(SIMPLE_KEY), utf8("ios_nx_netframework_compatible"), utf8("network_resolve_config")];
-    }
     let u8 = raw, gz = false;
     if (u8[0] === 0x1f && u8[1] === 0x8b) { u8 = gunzip(u8); gz = true; }
     const top = parse(u8, 0, u8.length);
     if (!top) return null;
-    let edits = null, found = false;
+    const edits = new Map();
+    let found = false;
     for (const x of top) {
       if (x.f !== 3 || x.w !== 2 || !AB_NEEDLES.some(kb => find(u8, kb, x.vs, x.e) >= 0)) continue;
       const ef = parse(u8, x.vs, x.e);
@@ -953,10 +721,9 @@
       const nv = rebuild(u8, v.vs, v.e, vf, vm);
       const em = new Map();
       em.set(v, lenField(2, nv));
-      if (!edits) edits = new Map();
       edits.set(x, lenField(3, rebuild(u8, x.vs, x.e, ef, em)));
     }
-    let out = edits ? rebuild(u8, 0, u8.length, top, edits) : null;
+    let out = rebuild(u8, 0, u8.length, top, edits);
     if (!out && !found && top.some(x => x.f === 1 && x.w === 0 && x.v === 100) && top.some(x => x.f === 3 && x.w === 2)) out = concat([u8, lenField(3, simpleModeEntry())]);
     if (!out) return null;
     return gz ? gzip(out) : out;
@@ -967,16 +734,12 @@
     return toU8(msg.body) || toU8(msg.bodyBytes);
   }
 
-  function doneBinary(u8, msg) {
+  function doneBinary(u8) {
     if (!u8) {
       $done({});
       return;
     }
-    if (typeof $loon !== "undefined" || (msg && msg.body instanceof Uint8Array)) {
-      $done({ body: u8 });
-    } else {
-      $done({ bodyBytes: toBuf(u8) });
-    }
+    $done({ body: u8 });
   }
 
   function main() {
@@ -986,7 +749,7 @@
       if (!isResp) {
         const b = host === "i.video.qq.com" ? getRawBody($request) : null;
         const r = b && b.length ? onTrpcRequest(b) : null;
-        doneBinary(r, $request);
+        doneBinary(r);
         return;
       }
       if (host === "rdelivery.qq.com") {
@@ -1008,7 +771,7 @@
         else if (host === "iacc.qq.com") r = onJce(b);
         else if (host === "config.ab.qq.com" && url.split("?")[0].endsWith("/tab/GetTabRemoteConfig")) r = onAbConfig(b);
       }
-      doneBinary(r, $response);
+      doneBinary(r);
     } catch (e) {
       console.log("txvideo-ad-clean: " + e);
       $done({});
