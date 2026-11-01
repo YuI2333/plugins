@@ -1,7 +1,7 @@
 (() => {
-  const TAB_DROP_KEYS = new Set(["smallvideo_entrance", "goods_entrance"]);
-  const TAB_DROP_TITLES = new Set(["短剧", "好物"]);
-  const TAB_CUT_WHITELIST = "0;2;4";
+  const TAB_DROP_KEYS = new Set(["smallvideo_entrance", "goods_entrance", "vip_entrance"]);
+  const TAB_DROP_TITLES = new Set(["短剧", "好物", "会员专区"]);
+  const TAB_CUT_WHITELIST = "0;4";
   const AD_ANY = new Set(["AdResponseInfo", "InnerAdPromotionEventList", "InnerAdCommonPromotionEventActivityList", "LoadingConfig", "PreloadResourceInfo", "AdFeedInfo"]);
   const DROP_MODULES = ["user_center_more_function"];
   const DROP_MODULES_SET = new Set(DROP_MODULES);
@@ -65,8 +65,18 @@
   }
   function find(h, n, s, e) {
     const f = n[0], m = n.length, lim = e - m;
-    outer: for (let i = s; i <= lim && (i = h.indexOf(f, i)) >= 0 && i <= lim; i++) {
-      for (let j = 1; j < m; j++) if (h[i + j] !== n[j]) continue outer;
+    if (s > lim) return -1;
+    if (lim - s < 64) {
+      outer1: for (let i = s; i <= lim; i++) {
+        if (h[i] !== f) continue;
+        for (let j = 1; j < m; j++) if (h[i + j] !== n[j]) continue outer1;
+        return i;
+      }
+      return -1;
+    }
+    const sub = e < h.length ? h.subarray(0, e) : h;
+    outer2: for (let i = s; (i = sub.indexOf(f, i)) >= 0 && i <= lim; i++) {
+      for (let j = 1; j < m; j++) if (h[i + j] !== n[j]) continue outer2;
       return i;
     }
     return -1;
@@ -313,6 +323,7 @@
   const MARKER_BYTES = MARKERS.map(m => [m, utf8(m)]);
   const LIVEMSG = utf8("livemsg");
   const GZ_MAGIC = new Uint8Array([0x1f, 0x8b, 0x08]);
+  const PAGE_ID = utf8("page_id"), BOTTOM = utf8("bottom"), DATA_ID = utf8("data_identifier");
   let ANYV = 0;
   function anyName(b, s, e) {
     if (b[s] !== 0x0a) return null;
@@ -495,6 +506,23 @@
     if (!fr) return null;
     const hd = parse(u8, fr.hs, fr.he), fn = hd && hd.find(x => x.f === 7 && x.w === 2);
     const func = fn ? ascii(u8, fn.vs, fn.e) : null;
+    if (func && func.endsWith("/getNaviPage") && find(u8, PAGE_ID, fr.he, u8.length) >= 0 && find(u8, BOTTOM, fr.he, u8.length) >= 0) {
+      const kp = find(u8, DATA_ID, fr.he, u8.length);
+      if (kp >= 0) {
+        const out = u8.slice();
+        let p = kp + DATA_ID.length;
+        while (p < out.length && (out[p] < 48 || out[p] > 57)) p++;
+        const s = p;
+        while (p < out.length && out[p] >= 48 && out[p] <= 57) p++;
+        if (p > s) {
+          const id = utf8(("0000000000000000000" + Date.now()).slice(-(p - s)));
+          if (id.length === p - s) {
+            out.set(id, s);
+            return gz ? gzip(out) : out;
+          }
+        }
+      }
+    }
     if (!func || !BLOCK_FUNCS.has(func)) return null;
     const nb = utf8(func.slice(func.lastIndexOf("/") + 1)), out = u8.slice();
     for (let p = fr.hs; (p = find(out, nb, p, fr.he)) >= 0; p += nb.length) out[p] = out[p] === 0x58 ? 0x59 : 0x58;
@@ -753,7 +781,9 @@
       (edits || (edits = new Map())).set(x, lenField(3, rebuild(u8, x.vs, x.e, ef, em)));
     }
     let out = edits ? rebuild(u8, 0, u8.length, top, edits) : null;
-    if (!out && !found && top.some(x => x.f === 1 && x.w === 0 && x.v === 100) && top.some(x => x.f === 3 && x.w === 2)) out = concat([u8, lenField(3, simpleModeEntry())]);
+    if (!found && top.some(x => x.f === 1 && x.w === 0 && x.v === 100) && top.some(x => x.f === 3 && x.w === 2)) {
+      out = concat([out || u8, lenField(3, simpleModeEntry())]);
+    }
     if (!out) return null;
     return gz ? gzip(out) : out;
   }
