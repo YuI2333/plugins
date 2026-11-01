@@ -65,18 +65,8 @@
   }
   function find(h, n, s, e) {
     const f = n[0], m = n.length, lim = e - m;
-    if (s > lim) return -1;
-    if (lim - s < 64) {
-      outer1: for (let i = s; i <= lim; i++) {
-        if (h[i] !== f) continue;
-        for (let j = 1; j < m; j++) if (h[i + j] !== n[j]) continue outer1;
-        return i;
-      }
-      return -1;
-    }
-    const sub = e < h.length ? h.subarray(0, e) : h;
-    outer2: for (let i = s; (i = sub.indexOf(f, i)) >= 0 && i <= lim; i++) {
-      for (let j = 1; j < m; j++) if (h[i + j] !== n[j]) continue outer2;
+    outer: for (let i = s; i <= lim && (i = h.indexOf(f, i)) >= 0 && i <= lim; i++) {
+      for (let j = 1; j < m; j++) if (h[i + j] !== n[j]) continue outer;
       return i;
     }
     return -1;
@@ -506,7 +496,7 @@
     if (!fr) return null;
     const hd = parse(u8, fr.hs, fr.he), fn = hd && hd.find(x => x.f === 7 && x.w === 2);
     const func = fn ? ascii(u8, fn.vs, fn.e) : null;
-    if (func && func.endsWith("/getNaviPage") && find(u8, PAGE_ID, fr.he, u8.length) >= 0 && find(u8, BOTTOM, fr.he, u8.length) >= 0) {
+    if (func && /\/getNaviPage$/.test(func) && find(u8, PAGE_ID, fr.he, u8.length) >= 0 && find(u8, BOTTOM, fr.he, u8.length) >= 0) {
       const kp = find(u8, DATA_ID, fr.he, u8.length);
       if (kp >= 0) {
         const out = u8.slice();
@@ -781,9 +771,7 @@
       (edits || (edits = new Map())).set(x, lenField(3, rebuild(u8, x.vs, x.e, ef, em)));
     }
     let out = edits ? rebuild(u8, 0, u8.length, top, edits) : null;
-    if (!found && top.some(x => x.f === 1 && x.w === 0 && x.v === 100) && top.some(x => x.f === 3 && x.w === 2)) {
-      out = concat([out || u8, lenField(3, simpleModeEntry())]);
-    }
+    if (!out && !found && top.some(x => x.f === 1 && x.w === 0 && x.v === 100) && top.some(x => x.f === 3 && x.w === 2)) out = concat([u8, lenField(3, simpleModeEntry())]);
     if (!out) return null;
     return gz ? gzip(out) : out;
   }
