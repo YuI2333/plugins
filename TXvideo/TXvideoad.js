@@ -1,7 +1,7 @@
 (() => {
-  const TAB_DROP_KEYS = new Set(["smallvideo_entrance", "goods_entrance", "vip_entrance"]);
-  const TAB_DROP_TITLES = new Set(["短剧", "好物", "会员专区"]);
-  const TAB_CUT_WHITELIST = "0;4";
+  const TAB_DROP_KEYS = new Set(["smallvideo_entrance", "goods_entrance"]);
+  const TAB_DROP_TITLES = new Set(["短剧", "好物"]);
+  const TAB_CUT_WHITELIST = "0;2;4";
   const AD_ANY = new Set(["AdResponseInfo", "InnerAdPromotionEventList", "InnerAdCommonPromotionEventActivityList", "LoadingConfig", "PreloadResourceInfo", "AdFeedInfo"]);
   const DROP_MODULES = ["user_center_more_function"];
   const DROP_MODULES_SET = new Set(DROP_MODULES);
@@ -30,6 +30,7 @@
   const JCE_PLAY_TIPS = 126577;
   const JCE_ROLL_ADS = [129278, 130273];
   const JCE_PAUSE_AD = 129196;
+  const JCE_SPLASH = 129279;
   const DROP = {};
 
   const TE = typeof TextEncoder !== "undefined" ? new TextEncoder() : null;
@@ -322,6 +323,7 @@
   const TYPE = utf8("type.googleapis.com/");
   const MARKER_BYTES = MARKERS.map(m => [m, utf8(m)]);
   const LIVEMSG = utf8("livemsg");
+  const AD_SPLASH = utf8("ad_splash"), SPA_SERVER_DATA = utf8("SpaServerData");
   const GZ_MAGIC = new Uint8Array([0x1f, 0x8b, 0x08]);
   const PAGE_ID = utf8("page_id"), BOTTOM = utf8("bottom"), DATA_ID = utf8("data_identifier");
   let ANYV = 0;
@@ -687,11 +689,21 @@
     edits.set(w, nw);
     return jRebuild(b, s, e, fs, edits);
   }
+  function fixSplash(b, s, e) {
+    if (find(b, AD_SPLASH, s, e) < 0 && find(b, SPA_SERVER_DATA, s, e) < 0) return null;
+    const fs = jFields(b, s, e), edits = new Map();
+    for (const x of fs) {
+      if ((x.tag === 2 || x.tag === 3 || x.tag === 4) && x.t === 9 && jInt(b, x.vs) > 0) {
+        edits.set(x, concat([new Uint8Array(jHeadEnc(x.tag, 9)), jIntEnc(0, 0)]));
+      }
+    }
+    return edits.size ? jRebuild(b, s, e, fs, edits) : null;
+  }
   function onJce(raw) {
     const b = raw, n = b.length;
     if (n < 100 || b[0] !== 0x13 || u32(b, 1) !== n || b[n - 1] !== 0x03) return null;
     const cmd = (b[8] << 16) | (b[9] << 8) | b[10];
-    const fix = cmd === JCE_TEEN_CONFIG ? fixTeenConfig : cmd === JCE_PLAY_TIPS ? fixPlayTips : JCE_ROLL_ADS.indexOf(cmd) >= 0 ? fixRollAds : cmd === JCE_PAUSE_AD ? fixPauseAd : null;
+    const fix = cmd === JCE_TEEN_CONFIG ? fixTeenConfig : cmd === JCE_PLAY_TIPS ? fixPlayTips : JCE_ROLL_ADS.indexOf(cmd) >= 0 ? fixRollAds : cmd === JCE_PAUSE_AD ? fixPauseAd : cmd === JCE_SPLASH ? fixSplash : null;
     if (!fix) return null;
     const gz = find(b, GZ_MAGIC, 60, Math.min(n, 140));
     if (gz < 4) return null;
