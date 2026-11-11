@@ -7,6 +7,25 @@
   const AD_MODULE_IDS = ["outerPaster"];
   const FEED_MODULE_TAGS = ["waterfall_feeds_module_mergeid"];
   const MARKERS = ["AdFeedInfo", "AdResponseInfo", "InnerAd", "LoadingConfig", "PreloadResourceInfo", "GetTabListRsp", "_ad", "teenager_popup_ctrl"].concat(DROP_MODULES);
+  
+  // 预编译全部静态 utf8 字节数组，消除运行时重复编码开销
+  const MARKER_BYTES = MARKERS.map(m => [m, utf8(m)]);
+  const PC_PAGE_BYTES = utf8("personal_center_page");
+  const AD_FEED_BYTES = utf8("pb.AdFeed");
+  const TYPE_BYTES = utf8("type.googleapis.com/");
+  const GZ_MAGIC = new Uint8Array([0x1f, 0x8b, 0x08]);
+  const PAGE_ID_BYTES = utf8("page_id");
+  const BOTTOM_BYTES = utf8("bottom");
+  const DATA_ID_BYTES = utf8("data_identifier");
+  const LIVEMSG_BYTES = utf8("livemsg");
+  const AD_SPLASH_BYTES = utf8("ad_splash");
+  const SPA_SERVER_BYTES = utf8("SpaServerData");
+  const SIMPLE_KEY_STR = "simple_mode_config";
+  const SIMPLE_KEY_BYTES = utf8(SIMPLE_KEY_STR);
+  const NET_RES_BYTES = utf8("network_resolve_config");
+  const IOS_NET_BYTES = utf8("ios_nx_netframework_compatible");
+  const IOS_NET_BBTF_BYTES = utf8("ios_nx_netframework_compatible_bbtf");
+
   const BLOCK_FUNCS = [
     "/trpc.business_splash.ad_ssp_splash.splashService/GetSplashPreload",
     "/trpc.business_splash.ad_ssp_splash.splashService/GetSplashRealtimePoll",
@@ -58,15 +77,29 @@
     for (const p of parts) { o.set(p, k); k += p.length; }
     return o;
   }
+  
+  // 混合双模 find：大范围全文扫描走原生 indexOf 加速，局部短跨度走零分配 for 循环
   function find(h, n, s, e) {
-    const f = n[0], m = n.length;
-    outer: for (let i = s; i <= e - m; i++) {
+    const f = n[0], m = n.length, lim = e - m;
+    if (s > lim) return -1;
+    if (e === h.length && lim - s > 256) {
+      for (let i = (s = h.indexOf(f, s)); i >= 0 && i <= lim; i = h.indexOf(f, i + 1)) {
+        let match = true;
+        for (let j = 1; j < m; j++) {
+          if (h[i + j] !== n[j]) { match = false; break; }
+        }
+        if (match) return i;
+      }
+      return -1;
+    }
+    outer: for (let i = s; i <= lim; i++) {
       if (h[i] !== f) continue;
       for (let j = 1; j < m; j++) if (h[i + j] !== n[j]) continue outer;
       return i;
     }
     return -1;
   }
+
   function u32(b, p) { return ((b[p] << 24) >>> 0) + (b[p + 1] << 16) + (b[p + 2] << 8) + b[p + 3]; }
   function put32(b, p, v) { b[p] = (v >>> 24) & 255; b[p + 1] = (v >>> 16) & 255; b[p + 2] = (v >>> 8) & 255; b[p + 3] = v & 255; }
   function toU8(x) {
@@ -93,8 +126,9 @@
     for (let i = 0; i < n; i++) if (len[i]) sym[offs[len[i]]++] = i;
     return { count: count, sym: sym };
   }
-  function inflate(src, start) {
-    let ip = start, bb = 0, bc = 0, op = 0, out = new Uint8Array(src.length * 4 + 4096);
+  
+  function inflate(src, start, maxLen) {
+    let ip = start, bb = 0, bc = 0, op = 0, out = new Uint8Array(maxLen || (src.length * 4 + 4096));
     function room(n) {
       if (op + n <= out.length) return;
       let l = out.length * 2;
@@ -174,10 +208,12 @@
           }
         }
       } else throw new Error("inflate type");
+      if (maxLen && op >= maxLen) break;
       if (last) break;
     }
     return { data: out.subarray(0, op), end: ip };
   }
+
   function gunzip(b) {
     if (b[0] !== 0x1f || b[1] !== 0x8b || b[2] !== 8) throw new Error("not gzip");
     const f = b[3];
@@ -186,12 +222,13 @@
     if (f & 8) { while (b[p]) p++; p++; }
     if (f & 16) { while (b[p]) p++; p++; }
     if (f & 2) p += 2;
-    const r = inflate(b, p);
+    const isize = (b[b.length - 4] | (b[b.length - 3] << 8) | (b[b.length - 2] << 16) | (b[b.length - 1] << 24)) >>> 0;
+    const r = inflate(b, p, isize > 0 && isize <= 16777216 ? isize : 0);
     if (r.end + 8 > b.length) throw new Error("gzip trailer");
-    const isize = (b[r.end + 4] | (b[r.end + 5] << 8) | (b[r.end + 6] << 16) | (b[r.end + 7] << 24)) >>> 0;
     if (isize !== (r.data.length >>> 0)) throw new Error("gzip size");
     return r.data;
   }
+
   let CRC = null;
   function crc32(b) {
     if (!CRC) {
@@ -283,14 +320,13 @@
     return concat(parts);
   }
 
-  const TYPE = utf8("type.googleapis.com/");
   let ANYV = 0;
   function anyName(b, s, e) {
     if (b[s] !== 0x0a) return null;
     const l = rv(b, s + 1, e);
     if (l < 21 || VP + l > e) return null;
     const p = VP;
-    if (find(b, TYPE, p, p + TYPE.length) !== p) return null;
+    if (find(b, TYPE_BYTES, p, p + TYPE_BYTES.length) !== p) return null;
     const t = ascii(b, p, p + l);
     if (!t) return null;
     ANYV = p + l;
@@ -300,10 +336,10 @@
   let MARK = {}, ALL = [];
   function indexMarkers(b, s, e) {
     MARK = {}; ALL = [];
-    for (const m of MARKERS) {
-      const nb = utf8(m), arr = [];
+    for (let i = 0; i < MARKERS.length; i++) {
+      const name = MARKERS[i], nb = MARKER_BYTES[i][1], arr = [];
       for (let p = s; (p = find(b, nb, p, e)) >= 0; p += nb.length) arr.push(p);
-      MARK[m] = arr;
+      MARK[name] = arr;
       ALL = ALL.concat(arr);
     }
     ALL.sort((x, y) => x - y);
@@ -394,10 +430,11 @@
     const nv = rebuild(b, v.vs, v.e, vf, edits);
     return lenField(x.f, concat([b.subarray(x.vs, v.s), lenField(2, nv), b.subarray(v.e, x.e)]));
   }
-  function clean(b, s, e, depth) {
+  
+  // 复用 kids 解析结果的安全 clean 递归
+  function clean(b, s, e, depth, fs) {
     if (depth > 48 || !has(null, s, e)) return null;
-    const fs = parse(b, s, e);
-    if (!fs) return null;
+    if (!fs && !(fs = parse(b, s, e))) return null;
     const edits = new Map();
     for (const x of fs) {
       if (x.w !== 2 || x.e - x.vs < 2 || !has(null, x.vs, x.e)) continue;
@@ -408,13 +445,17 @@
         const t = tabFix(b, x);
         if (t) { edits.set(x, t); continue; }
       }
-      const r = clean(b, x.vs, x.e, depth + 1);
+      const r = clean(b, x.vs, x.e, depth + 1, kids);
       if (r) edits.set(x, lenField(x.f, r));
     }
     return rebuild(b, s, e, fs, edits);
   }
-  const PC_PAGE = utf8("personal_center_page"), AD_FEED = utf8("pb.AdFeed");
+
   function transform(b, s, e) {
+    // 快速短路机制：若既无广告特征 MARKERS，又无个人中心特征，直接零开销毫秒级放行
+    const hasPc = find(b, PC_PAGE_BYTES, s, e) >= 0;
+    if (!ALL.length && !hasPc) return null;
+
     const top = parse(b, s, e);
     if (!top) return null;
     if (has("teenager_popup_ctrl", s, e)) {
@@ -429,22 +470,24 @@
         return rebuild(b, s, e, top, edits);
       }
     }
-    if (find(b, PC_PAGE, s, e) >= 0) {
-      const f5 = top.find(x => x.f === 5 && x.w === 2 && find(b, PC_PAGE, x.vs, x.e) >= 0);
+    if (hasPc) {
+      const f5 = top.find(x => x.f === 5 && x.w === 2 && find(b, PC_PAGE_BYTES, x.vs, x.e) >= 0);
       if (f5) {
         const edits = new Map();
-        for (const x of top) if (x.w === 2 && x !== f5 && find(b, AD_FEED, x.vs, x.e) >= 0) edits.set(x, DROP);
+        for (const x of top) if (x.w === 2 && x !== f5 && find(b, AD_FEED_BYTES, x.vs, x.e) >= 0) edits.set(x, DROP);
         if (edits.size) return rebuild(b, s, e, top, edits);
       }
     }
-    return clean(b, s, e, 0);
+    return clean(b, s, e, 0, top);
   }
+
   function trpcFrame(u8) {
     if (u8.length < 16 || u8[0] !== 0x09 || u8[1] !== 0x30) return null;
     const total = u32(u8, 4), hl = (u8[8] << 8) | u8[9];
     if (total !== u8.length || 16 + hl > total) return null;
     return { hs: 16, he: 16 + hl };
   }
+  
   function onTrpcResponse(raw) {
     let u8 = raw, gz = false;
     if (u8[0] === 0x1f && u8[1] === 0x8b) { u8 = gunzip(u8); gz = true; }
@@ -457,18 +500,38 @@
     put32(out, 4, out.length);
     return gz ? gzip(out) : out;
   }
+
   function onTrpcRequest(raw) {
     let u8 = raw, gz = false;
-    if (u8[0] === 0x1f && u8[1] === 0x8b) { u8 = gunzip(u8); gz = true; }
+    if (u8[0] === 0x1f && u8[1] === 0x8b) {
+      // 头部 512 字节快速嗅探，过滤 99% 的普通正常请求，免去完整解压
+      try {
+        const peek = inflate(u8, 10, 512);
+        if (peek.data.length >= 16 && peek.data[0] === 0x09 && peek.data[1] === 0x30) {
+          const hl = (peek.data[8] << 8) | peek.data[9];
+          if (16 + hl <= peek.data.length) {
+            const tempFrHs = 16, tempFrHe = 16 + hl;
+            const hd = parse(peek.data, tempFrHs, tempFrHe);
+            const fn = hd && hd.find(x => x.f === 7 && x.w === 2);
+            const func = fn ? ascii(peek.data, fn.vs, fn.e) : null;
+            if ((!func || BLOCK_FUNCS.indexOf(func) < 0) && !(/\/getNaviPage$/.test(func))) {
+              return null; // 非广告或导航请求，直接毫秒级放行
+            }
+          }
+        }
+      } catch(e) {}
+      u8 = gunzip(u8); 
+      gz = true;
+    }
     const fr = trpcFrame(u8);
     if (!fr) return null;
     const hd = parse(u8, fr.hs, fr.he), fn = hd && hd.find(x => x.f === 7 && x.w === 2);
     const func = fn ? ascii(u8, fn.vs, fn.e) : null;
-    if (func && /\/getNaviPage$/.test(func) && find(u8, utf8("page_id"), fr.he, u8.length) >= 0 && find(u8, utf8("bottom"), fr.he, u8.length) >= 0) {
-      const key = utf8("data_identifier"), kp = find(u8, key, fr.he, u8.length);
+    if (func && /\/getNaviPage$/.test(func) && find(u8, PAGE_ID_BYTES, fr.he, u8.length) >= 0 && find(u8, BOTTOM_BYTES, fr.he, u8.length) >= 0) {
+      const kp = find(u8, DATA_ID_BYTES, fr.he, u8.length);
       if (kp >= 0) {
         const out = u8.slice();
-        let p = kp + key.length;
+        let p = kp + DATA_ID_BYTES.length;
         while (p < out.length && (out[p] < 48 || out[p] > 57)) p++;
         const s = p;
         while (p < out.length && out[p] >= 48 && out[p] <= 57) p++;
@@ -624,7 +687,7 @@
   }
   function fixRollAds(b, s, e) {
     const fs = jFields(b, s, e), l = fs.find(x => x.tag === 2 && x.t === 9);
-    if (!l || jInt(b, l.vs) <= 0 || find(b, utf8("livemsg"), l.vs, l.e) < 0) return null;
+    if (!l || jInt(b, l.vs) <= 0 || find(b, LIVEMSG_BYTES, l.vs, l.e) < 0) return null;
     const edits = new Map();
     edits.set(l, concat([new Uint8Array(jHeadEnc(2, 9)), jIntEnc(0, 0)]));
     return jRebuild(b, s, e, fs, edits);
@@ -638,7 +701,7 @@
     const n = jInt(b, VP), ds = VP;
     if (ds + n !== l.e) return null;
     const inner = jFields(b, ds, l.e), list = inner.find(x => x.tag === 0 && x.t === 9);
-    if (!list || jInt(b, list.vs) <= 0 || find(b, utf8("livemsg"), list.vs, list.e) < 0) return null;
+    if (!list || jInt(b, list.vs) <= 0 || find(b, LIVEMSG_BYTES, list.vs, list.e) < 0) return null;
     const le = new Map();
     le.set(l, jSimpleList(1, concat([new Uint8Array(jHeadEnc(0, 9)), jIntEnc(0, 0)])));
     const nw = concat([b.subarray(w.s, w.vs), jRebuild(b, w.vs, w.e - 1, ws, le), new Uint8Array([0x0b])]);
@@ -647,7 +710,7 @@
     return jRebuild(b, s, e, fs, edits);
   }
   function fixSplash(b, s, e) {
-    if (find(b, utf8("ad_splash"), s, e) < 0 && find(b, utf8("SpaServerData"), s, e) < 0) return null;
+    if (find(b, AD_SPLASH_BYTES, s, e) < 0 && find(b, SPA_SERVER_BYTES, s, e) < 0) return null;
     const fs = jFields(b, s, e), edits = new Map();
     for (const x of fs) {
       if ((x.tag === 2 || x.tag === 3 || x.tag === 4) && x.t === 9 && jInt(b, x.vs) > 0) edits.set(x, concat([new Uint8Array(jHeadEnc(x.tag, 9)), jIntEnc(0, 0)]));
@@ -660,7 +723,7 @@
     const cmd = (b[8] << 16) | (b[9] << 8) | b[10];
     const fix = cmd === JCE_TEEN_CONFIG ? fixTeenConfig : cmd === JCE_PLAY_TIPS ? fixPlayTips : JCE_ROLL_ADS.indexOf(cmd) >= 0 ? fixRollAds : cmd === JCE_PAUSE_AD ? fixPauseAd : cmd === JCE_SPLASH ? fixSplash : null;
     if (!fix) return null;
-    const gz = find(b, new Uint8Array([0x1f, 0x8b, 0x08]), 60, Math.min(n, 140));
+    const gz = find(b, GZ_MAGIC, 60, Math.min(n, 140));
     if (gz < 4) return null;
     const inner = gunzip(b.subarray(gz, n - 1));
     const m = inner.length;
@@ -681,7 +744,6 @@
     return out;
   }
 
-  const SIMPLE_KEY = "simple_mode_config";
   function patchSimpleMode(js) {
     let o;
     try { o = JSON.parse(js); } catch (x) { return null; }
@@ -699,8 +761,8 @@
     return JSON.stringify({ enable: 1, launch_config: { enable: 1, delay_create_tab_enable: 1, delay_create_tab_whitelist: "" }, feature_config: { enable: 1, tab_bar_cut_enable: 1, tab_bar_cut_whitelist: TAB_CUT_WHITELIST } });
   }
   function simpleModeEntry() {
-    const v = concat([lenField(1, utf8(simpleModeJson())), ev(16), ev(11276), lenField(4, utf8(SIMPLE_KEY))]);
-    return concat([lenField(1, utf8(SIMPLE_KEY)), lenField(2, v)]);
+    const v = concat([lenField(1, utf8(simpleModeJson())), ev(16), ev(11276), lenField(4, SIMPLE_KEY_BYTES)]);
+    return concat([lenField(1, SIMPLE_KEY_BYTES), lenField(2, v)]);
   }
   function patchNoQuic(js) {
     let o;
@@ -722,7 +784,7 @@
     return JSON.stringify(o);
   }
   const AB_PATCH = { simple_mode_config: patchSimpleMode, ios_nx_netframework_compatible: patchNoQuic, ios_nx_netframework_compatible_bbtf: patchNoQuic, network_resolve_config: patchNoPreResolve };
-  const AB_NEEDLES = [utf8(SIMPLE_KEY), utf8("ios_nx_netframework_compatible"), utf8("network_resolve_config")];
+  const AB_NEEDLES = [SIMPLE_KEY_BYTES, IOS_NET_BYTES, NET_RES_BYTES];
   function onAbConfig(raw) {
     let u8 = raw, gz = false;
     if (u8[0] === 0x1f && u8[1] === 0x8b) { u8 = gunzip(u8); gz = true; }
@@ -738,7 +800,7 @@
       if (!key || !Object.prototype.hasOwnProperty.call(AB_PATCH, key)) continue;
       const vf = parse(u8, v.vs, v.e), j = vf && vf.find(z => z.f === 1 && z.w === 2);
       if (!j) continue;
-      if (key === SIMPLE_KEY) found = true;
+      if (key === SIMPLE_KEY_STR) found = true;
       const js = text(u8, j.vs, j.e), nj = js ? AB_PATCH[key](js) : null;
       if (!nj) continue;
       const vm = new Map();
