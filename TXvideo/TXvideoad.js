@@ -7,7 +7,7 @@
   const DROP_MODULES_SET = new Set(DROP_MODULES);
   const AD_MODULE_IDS = new Set(["outerPaster"]);
   const FEED_MODULE_TAGS = new Set(["waterfall_feeds_module_mergeid"]);
-  const MARKERS = ["AdFeedInfo", "AdResponseInfo", "InnerAd", "LoadingConfig", "PreloadResourceInfo", "GetTabListRsp", "_ad", "teenager_popup_ctrl"].concat(DROP_MODULES);
+  const MARKERS = ["AdFeedInfo", "AdResponseInfo", "InnerAd", "LoadingConfig", "PreloadResourceInfo", "GetTabListRsp", "_ad", "teenager_popup_ctrl", "personal_center_page"].concat(DROP_MODULES);
   const BLOCK_FUNCS = new Set([
     "/trpc.business_splash.ad_ssp_splash.splashService/GetSplashPreload",
     "/trpc.business_splash.ad_ssp_splash.splashService/GetSplashRealtimePoll",
@@ -129,9 +129,9 @@
     return { count: count, sym: sym, fast: fast };
   }
 
-  function inflate(src, start, initCap) {
+  function inflate(src, start, initCap, maxLen) {
     const slen = src.length;
-    let ip = start, bb = 0, bc = 0, op = 0, out = new Uint8Array(initCap || (slen * 4 + 4096));
+    let ip = start, bb = 0, bc = 0, op = 0, out = new Uint8Array(maxLen || initCap || (slen * 4 + 4096));
     function room(n) {
       if (op + n <= out.length) return;
       let l = out.length * 2;
@@ -170,7 +170,9 @@
         const n = src[ip] | (src[ip + 1] << 8);
         ip += 4;
         if (ip + n > slen) throw new Error("inflate stored");
-        room(n); out.set(src.subarray(ip, ip + n), op); op += n; ip += n;
+        const copyLen = maxLen && op + n > maxLen ? maxLen - op : n;
+        room(copyLen); out.set(src.subarray(ip, ip + copyLen), op); op += copyLen; ip += n;
+        if (maxLen && op >= maxLen) return { data: out.subarray(0, op), end: ip };
       } else if (type === 1 || type === 2) {
         let hl, hd;
         if (type === 1) {
@@ -200,8 +202,11 @@
         }
         for (;;) {
           let s = dec(hl);
-          if (s < 256) { if (op >= out.length) room(1); out[op++] = s; }
-          else if (s === 256) break;
+          if (s < 256) {
+            if (op >= out.length) room(1);
+            out[op++] = s;
+            if (maxLen && op >= maxLen) return { data: out.subarray(0, op), end: ip };
+          } else if (s === 256) break;
           else {
             s -= 257;
             if (s >= 29) throw new Error("inflate len");
@@ -212,6 +217,7 @@
             if (op + len > out.length) room(len);
             if (dist >= len) { out.copyWithin(op, op - dist, op - dist + len); op += len; }
             else for (let i = 0; i < len; i++, op++) out[op] = out[op - dist];
+            if (maxLen && op >= maxLen) return { data: out.subarray(0, op), end: ip };
           }
         }
       } else throw new Error("inflate type");
@@ -221,7 +227,7 @@
     return { data: out.subarray(0, op), end: ip };
   }
 
-  function gunzip(b) {
+  function gunzip(b, maxLen) {
     const n = b.length;
     if (n < 18 || b[0] !== 0x1f || b[1] !== 0x8b || b[2] !== 8) throw new Error("not gzip");
     const f = b[3];
@@ -230,8 +236,9 @@
     if (f & 8) { while (b[p]) p++; p++; }
     if (f & 16) { while (b[p]) p++; p++; }
     if (f & 2) p += 2;
+    if (maxLen) return inflate(b, p, maxLen, maxLen).data;
     const hint = (b[n - 4] | (b[n - 3] << 8) | (b[n - 2] << 16) | (b[n - 1] << 24)) >>> 0;
-    const r = inflate(b, p, hint > 0 && hint <= 33554432 ? hint : (n * 4 + 4096));
+    const r = inflate(b, p, hint > 0 && hint <= 33554432 ? hint : (n * 4 + 4096), 0);
     if (r.end + 8 > n) throw new Error("gzip trailer");
     const isize = (b[r.end + 4] | (b[r.end + 5] << 8) | (b[r.end + 6] << 16) | (b[r.end + 7] << 24)) >>> 0;
     if (isize !== (r.data.length >>> 0)) throw new Error("gzip size");
@@ -346,7 +353,8 @@
 
   const TYPE = utf8("type.googleapis.com/");
   const MARKER_BYTES = MARKERS.map(m => [m, utf8(m)]);
-  const PC_PAGE = utf8("personal_center_page"), AD_FEED = utf8("pb.AdFeed");
+  const PC_PAGE = MARKER_BYTES[8][1];
+  const AD_FEED = utf8("pb.AdFeed");
   const PAGE_ID = utf8("page_id"), BOTTOM = utf8("bottom"), DATA_ID = utf8("data_identifier");
   const LIVEMSG = utf8("livemsg"), AD_SPLASH = utf8("ad_splash"), SPA_SERVER_DATA = utf8("SpaServerData");
   const GZ_MAGIC = new Uint8Array([0x1f, 0x8b, 0x08]);
@@ -373,9 +381,11 @@
         if (m === "_ad") {
           const nx = p + 3 < e ? b[p + 3] : 0;
           if ((nx >= 97 && nx <= 122) || (nx >= 65 && nx <= 90) || (nx >= 48 && nx <= 57)) continue;
+          const pv = p > s ? b[p - 1] : 0;
+          if (pv >= 65 && pv <= 90) continue;
         }
         arr.push(p);
-        ALL.push(p);
+        if (m !== "personal_center_page") ALL.push(p);
       }
       MARK[m] = arr;
     }
@@ -502,7 +512,7 @@
 
   function transform(b, s, e) {
     indexMarkers(b, s, e);
-    const hasPc = find(b, PC_PAGE, s, e) >= 0;
+    const hasPc = has("personal_center_page", s, e);
     if (!ALL.length && !hasPc) return null;
     const top = parse(b, s, e);
     if (!top) return null;
@@ -519,7 +529,7 @@
       }
     }
     if (hasPc) {
-      const f5 = top.find(x => x.f === 5 && x.w === 2 && find(b, PC_PAGE, x.vs, x.e) >= 0);
+      const f5 = top.find(x => x.f === 5 && x.w === 2 && has("personal_center_page", x.vs, x.e));
       if (f5) {
         const edits = new Map();
         for (const x of top) if (x.w === 2 && x !== f5 && find(b, AD_FEED, x.vs, x.e) >= 0) edits.set(x, DROP);
@@ -536,9 +546,27 @@
     return { hs: 16, he: 16 + hl };
   }
 
+  function peekTrpcFunc(raw) {
+    try {
+      const snip = (raw[0] === 0x1f && raw[1] === 0x8b) ? gunzip(raw, 512) : raw;
+      if (snip.length < 16 || snip[0] !== 0x09 || snip[1] !== 0x30) return "";
+      const hl = (snip[8] << 8) | snip[9];
+      if (16 + hl > snip.length) return null;
+      const hd = parse(snip, 16, 16 + hl), fn = hd && hd.find(x => x.f === 7 && x.w === 2);
+      return fn ? (ascii(snip, fn.vs, fn.e) || "") : "";
+    } catch (x) {
+      return null;
+    }
+  }
+
   function onTrpcResponse(raw) {
     let u8 = raw, gz = false;
-    if (u8[0] === 0x1f && u8[1] === 0x8b) { u8 = gunzip(u8); gz = true; }
+    if (u8[0] === 0x1f && u8[1] === 0x8b) {
+      const head = gunzip(u8, 32);
+      if (head.length < 16 || head[0] !== 0x09 || head[1] !== 0x30) return null;
+      u8 = gunzip(u8);
+      gz = true;
+    }
     const fr = trpcFrame(u8);
     if (!fr) return null;
     const body = transform(u8, fr.he, u8.length);
@@ -549,6 +577,8 @@
   }
 
   function onTrpcRequest(raw) {
+    const peek = peekTrpcFunc(raw);
+    if (peek !== null && (!peek || (!BLOCK_FUNCS.has(peek) && !peek.endsWith("/getNaviPage")))) return null;
     let u8 = raw, gz = false;
     if (u8[0] === 0x1f && u8[1] === 0x8b) { u8 = gunzip(u8); gz = true; }
     const fr = trpcFrame(u8);
